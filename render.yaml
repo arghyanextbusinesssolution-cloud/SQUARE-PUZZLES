@@ -49,6 +49,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: HOSTNAME
+        value: 0.0.0.0
       - key: NEXT_PUBLIC_API_URL
         value: https://square-puzzles-backend.onrender.com/api
       - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
