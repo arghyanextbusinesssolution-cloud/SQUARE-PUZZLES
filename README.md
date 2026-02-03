@@ -155,15 +155,27 @@ NEXT_PUBLIC_EMAILJS_PUBLIC_KEY=your-public-key
 
 ## Deployment
 
-### Frontend (Vercel)
-1. Connect your repository
-2. Set environment variables
-3. Deploy
+### Push to GitHub
 
-### Backend (Render)
-1. Create Web Service
-2. Set environment variables
-3. Deploy
+```bash
+# Create a new repo on GitHub (github.com → New repository), then:
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
+git push -u origin main
+```
+
+### Deploy on Render (frontend + backend)
+
+The repo includes a **Blueprint** (`render.yaml`) so you can deploy both services from the Render dashboard.
+
+1. **Push your code to GitHub** (see above).
+2. In [Render Dashboard](https://dashboard.render.com/) → **New** → **Blueprint**.
+3. Connect your GitHub repo. Render will detect `render.yaml` and create:
+   - **spiritualunitymatch-backend** (root: `backend`, health: `/api/health`)
+   - **spiritualunitymatch-frontend** (root: `my-app`, Next.js standalone)
+4. In each service, set **Environment** variables (marked `sync: false` in the blueprint):
+   - **Backend**: `MONGODB_URI`, `JWT_SECRET`, `FRONTEND_URL`, etc.
+   - **Frontend**: `NEXT_PUBLIC_API_URL` = your backend URL (e.g. `https://spiritualunitymatch-backend.onrender.com/api`)
+5. Deploy. Frontend subdirectory routes (e.g. `/dashboard`, `/login`) work on direct load/refresh via Next.js and `skipTrailingSlashRedirect`.
 
 ### MongoDB Atlas
 1. Create cluster
