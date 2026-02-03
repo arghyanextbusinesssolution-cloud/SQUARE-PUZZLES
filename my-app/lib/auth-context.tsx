@@ -4,9 +4,13 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { api } from './api';
 import type { User, AuthState } from '@/types';
 
+interface RegisterResult {
+  welcomeEmailSent?: boolean;
+}
+
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name?: string) => Promise<void>;
+  register: (email: string, password: string, name?: string) => Promise<RegisterResult | void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }

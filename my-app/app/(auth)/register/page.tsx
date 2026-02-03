@@ -38,7 +38,7 @@ export default function RegisterPage() {
       console.log('[Register] Registration successful');
 
       // Backend sends welcome email via EmailJS (public + private key + template)
-      if (result?.welcomeEmailSent) {
+      if (result && result.welcomeEmailSent) {
         console.log('[Register] Welcome email sent to inbox:', email);
       } else {
         console.warn('[Register] Welcome email was not sent (check backend logs). User:', email);
