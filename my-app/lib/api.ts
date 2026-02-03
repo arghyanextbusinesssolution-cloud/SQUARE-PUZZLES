@@ -1,3 +1,4 @@
+// Local: .env.local or default below. Production (Render): set NEXT_PUBLIC_API_URL in dashboard.
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 interface RequestOptions extends RequestInit {
