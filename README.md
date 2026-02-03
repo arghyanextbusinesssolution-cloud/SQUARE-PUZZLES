@@ -177,7 +177,7 @@ The repo includes a **Blueprint** (`render.yaml`) so you can deploy both service
    - **Frontend**: `NEXT_PUBLIC_API_URL` = your backend URL (e.g. `https://square-puzzles-backend.onrender.com/api`)
 5. Deploy.
 
-**If the frontend shows 502 Bad Gateway:** In the frontend service, set **Root Directory** to `my-app`, **Build Command** to `npm install && npm run build`, and **Start Command** to `npm start`. Then trigger a new deploy.
+**If the frontend shows 502 or "next: command not found":** In the frontend service, set **Root Directory** to `my-app`, **Build Command** to `npm install && npm run build`, and **Start Command** to **`npm start`** (do not use `next start` directly—Render cannot find the `next` binary). Then redeploy.
 
 ### MongoDB Atlas
 1. Create cluster

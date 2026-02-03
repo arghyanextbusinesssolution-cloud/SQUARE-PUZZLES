@@ -20,8 +20,20 @@ const app = express();
 app.use(helmet());
 
 // CORS configuration
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+const allowedOrigins = FRONTEND_URL.split(',').map(s => s.trim());
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: function(origin, callback) {
+    // If no origin (e.g. server-to-server requests or tools), allow
+    if (!origin) return callback(null, true);
+    // Allow wildcard
+    if (allowedOrigins.includes('*')) return callback(null, true);
+    // Allow if origin is in the whitelist
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    // Otherwise, reject
+    return callback(new Error('CORS not allowed'), false);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
