@@ -1,0 +1,55 @@
+# Render Deployment Configuration for Spiritual Unity Match
+# Use this for Blueprint deploy or configure services manually in Render Dashboard
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  # Backend API
+  - type: web
+    name: spiritualunitymatch-backend
+    env: node
+    plan: starter
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRE
+        value: 7d
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: AUTO_APPROVE_PROFILES
+        value: "true"
+    healthCheckPath: /api/health
+
+  # Frontend (Next.js - my-app)
+  - type: web
+    name: spiritualunitymatch-frontend
+    env: node
+    plan: starter
+    rootDir: my-app
+    buildCommand: npm install && npm run build && cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/
+    startCommand: node .next/standalone/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
+      - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+        sync: false

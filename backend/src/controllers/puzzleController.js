@@ -1,0 +1,312 @@
+const { Puzzle, PuzzleAttempt, Report } = require('../models');
+const { compareGrids, generateClipboardText } = require('../services/puzzleService');
+
+/**
+ * @desc    Get today's puzzle
+ * @route   GET /api/puzzle/today
+ * @access  Public (optional auth for tracking)
+ */
+const getTodaysPuzzle = async (req, res, next) => {
+  try {
+    const puzzle = await Puzzle.getTodaysPuzzle();
+    
+    if (!puzzle) {
+      return res.status(404).json({
+        success: false,
+        error: 'No puzzle available for today'
+      });
+    }
+    
+    // Get puzzle with solution to extract visible letters
+    const puzzleWithSolution = await Puzzle.findById(puzzle._id).select('+solutionGrid');
+    const visibleLetters = puzzleWithSolution.getVisibleLetters();
+    
+    // Get user's attempt if authenticated
+    let attempt = null;
+    if (req.user) {
+      attempt = await PuzzleAttempt.findOne({
+        userId: req.user._id,
+        puzzleId: puzzle._id
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      puzzle: {
+        id: puzzle._id,
+        puzzleDate: puzzle.puzzleDate,
+        gridSize: puzzle.gridSize,
+        visibleLetters,
+        dailyMessage: puzzle.dailyMessage
+      },
+      attempt: attempt ? {
+        currentGrid: attempt.currentGrid,
+        hintUsed: attempt.hintUsed,
+        status: attempt.status
+      } : null
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Check user's grid against solution
+ * @route   POST /api/puzzle/check
+ * @access  Private
+ */
+const checkGrid = async (req, res, next) => {
+  try {
+    const { grid, puzzleId } = req.body;
+    
+    // Get puzzle with solution
+    const puzzle = await Puzzle.findById(puzzleId).select('+solutionGrid');
+    
+    if (!puzzle) {
+      return res.status(404).json({
+        success: false,
+        error: 'Puzzle not found'
+      });
+    }
+    
+    // Compare grids
+    const result = compareGrids(grid, puzzle.solutionGrid);
+    
+    // Update or create attempt
+    let attempt = await PuzzleAttempt.findOne({
+      userId: req.user._id,
+      puzzleId
+    });
+    
+    if (!attempt) {
+      attempt = new PuzzleAttempt({
+        userId: req.user._id,
+        puzzleId,
+        currentGrid: grid
+      });
+    } else {
+      attempt.currentGrid = grid;
+    }
+    
+    attempt.attempts += 1;
+    attempt.status = result.status;
+    
+    if (result.status === 'correct') {
+      attempt.completedAt = new Date();
+    }
+    
+    await attempt.save();
+    
+    res.status(200).json({
+      success: true,
+      result: {
+        status: result.status,
+        message: result.message
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Save user's current grid progress
+ * @route   POST /api/puzzle/save
+ * @access  Private
+ */
+const saveProgress = async (req, res, next) => {
+  try {
+    const { grid, puzzleId } = req.body;
+    
+    let attempt = await PuzzleAttempt.getOrCreate(
+      req.user._id, 
+      puzzleId, 
+      grid.length
+    );
+    
+    attempt.currentGrid = grid;
+    await attempt.save();
+    
+    res.status(200).json({
+      success: true,
+      message: 'Progress saved'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get hint for puzzle
+ * @route   POST /api/puzzle/hint
+ * @access  Private
+ */
+const getHint = async (req, res, next) => {
+  try {
+    const { puzzleId } = req.body;
+    
+    const puzzle = await Puzzle.findById(puzzleId);
+    
+    if (!puzzle) {
+      return res.status(404).json({
+        success: false,
+        error: 'Puzzle not found'
+      });
+    }
+    
+    // Mark hint as used in attempt
+    let attempt = await PuzzleAttempt.findOne({
+      userId: req.user._id,
+      puzzleId
+    });
+    
+    if (!attempt) {
+      attempt = new PuzzleAttempt({
+        userId: req.user._id,
+        puzzleId,
+        currentGrid: Array(puzzle.gridSize).fill(null).map(() => 
+          Array(puzzle.gridSize).fill('')
+        )
+      });
+    }
+    
+    await attempt.useHint();
+    
+    res.status(200).json({
+      success: true,
+      hintCells: puzzle.hintCells,
+      message: 'Hint cells highlighted'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get yesterday's puzzle result
+ * @route   GET /api/puzzle/yesterday
+ * @access  Private
+ */
+const getYesterdayResult = async (req, res, next) => {
+  try {
+    const puzzle = await Puzzle.getYesterdaysPuzzle();
+    
+    if (!puzzle) {
+      return res.status(404).json({
+        success: false,
+        error: 'No puzzle available from yesterday'
+      });
+    }
+    
+    // Get user's attempt
+    const attempt = await PuzzleAttempt.findOne({
+      userId: req.user._id,
+      puzzleId: puzzle._id
+    });
+    
+    // Generate clipboard text
+    const clipboardText = generateClipboardText(
+      puzzle.solutionGrid,
+      puzzle.hintCells,
+      puzzle.puzzleDate,
+      attempt?.hintUsed || false
+    );
+    
+    res.status(200).json({
+      success: true,
+      puzzle: {
+        id: puzzle._id,
+        puzzleDate: puzzle.puzzleDate,
+        gridSize: puzzle.gridSize,
+        solutionGrid: puzzle.solutionGrid,
+        hintCells: puzzle.hintCells
+      },
+      attempt: attempt ? {
+        hintUsed: attempt.hintUsed,
+        status: attempt.status,
+        completedAt: attempt.completedAt
+      } : null,
+      clipboardText
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Report a problem with puzzle
+ * @route   POST /api/puzzle/report
+ * @access  Private
+ */
+const reportProblem = async (req, res, next) => {
+  try {
+    const { puzzleId, userGrid, reportType, description } = req.body;
+    
+    // Get user's attempt
+    const attempt = await PuzzleAttempt.findOne({
+      userId: req.user._id,
+      puzzleId
+    });
+    
+    const report = await Report.create({
+      userId: req.user._id,
+      puzzleId,
+      userGrid,
+      hintUsed: attempt?.hintUsed || false,
+      reportType: reportType || 'other',
+      description
+    });
+    
+    res.status(201).json({
+      success: true,
+      message: 'Problem reported successfully. Thank you for your feedback!',
+      reportId: report._id
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get user's puzzle history
+ * @route   GET /api/puzzle/history
+ * @access  Private
+ */
+const getHistory = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    
+    const attempts = await PuzzleAttempt.find({ userId: req.user._id })
+      .populate('puzzleId', 'puzzleDate gridSize dailyMessage')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    
+    const total = await PuzzleAttempt.countDocuments({ userId: req.user._id });
+    
+    res.status(200).json({
+      success: true,
+      data: attempts,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  getTodaysPuzzle,
+  checkGrid,
+  saveProgress,
+  getHint,
+  getYesterdayResult,
+  reportProblem,
+  getHistory
+};
