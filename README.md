@@ -50,50 +50,50 @@ game-website/
 - MongoDB Atlas account or local MongoDB
 - EmailJS account (for notifications)
 
-### 1. Backend Setup
+### Run backend and frontend locally (two terminals)
+
+**Terminal 1 – Backend**
 
 ```bash
 cd backend
-
-# Install dependencies
 npm install
-
-# Create .env file
 cp .env.example .env
-
-# Edit .env with your MongoDB URI and JWT secret
-# MONGODB_URI=mongodb+srv://...
-# JWT_SECRET=your-secret-key
-
-# Seed admin user
+# Edit .env: set MONGODB_URI, JWT_SECRET, FRONTEND_URL=http://localhost:3000
 npm run seed:admin
-
-# Start development server
 npm run dev
 ```
 
-### 2. Frontend Setup
+Backend runs at **http://localhost:5000** (API at `/api`).
+
+**Terminal 2 – Frontend**
 
 ```bash
 cd my-app
-
-# Install dependencies
 npm install
-
-# Create .env.local file
 cp .env.example .env.local
-
-# Edit .env.local with your EmailJS credentials
-
-# Start development server
+# Optional: set NEXT_PUBLIC_API_URL=http://localhost:5000/api (this is the default when running locally)
 npm run dev
 ```
 
-### 3. Access the Application
+Frontend runs at **http://localhost:3000** and talks to the backend at `http://localhost:5000/api` automatically in development.
 
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5000/api
-- Health Check: http://localhost:5000/api/health
+**Access locally**
+
+- App: http://localhost:3000  
+- API: http://localhost:5000/api  
+- Health: http://localhost:5000/api/health  
+
+### One-time setup details
+
+**Backend (`backend/.env`)**
+- `PORT=5000` (default)
+- `NODE_ENV=development`
+- `MONGODB_URI` – your MongoDB connection string
+- `JWT_SECRET` – any long random string
+- `FRONTEND_URL=http://localhost:3000` – required for CORS so the frontend can call the API
+
+**Frontend (`my-app/.env.local`)**
+- `NEXT_PUBLIC_API_URL=http://localhost:5000/api` – optional locally; the app uses this when not in production. Omit it and it still defaults to localhost:5000 in dev.
 
 ## Features
 
@@ -171,11 +171,13 @@ The repo includes a **Blueprint** (`render.yaml`) so you can deploy both service
 2. In [Render Dashboard](https://dashboard.render.com/) → **New** → **Blueprint**.
 3. Connect your GitHub repo. Render will detect `render.yaml` and create:
    - **spiritualunitymatch-backend** (root: `backend`, health: `/api/health`)
-   - **spiritualunitymatch-frontend** (root: `my-app`, Next.js standalone)
+   - **spiritualunitymatch-frontend** (root: `my-app`)
 4. In each service, set **Environment** variables (marked `sync: false` in the blueprint):
    - **Backend**: `MONGODB_URI`, `JWT_SECRET`, `FRONTEND_URL`, etc.
-   - **Frontend**: `NEXT_PUBLIC_API_URL` = your backend URL (e.g. `https://spiritualunitymatch-backend.onrender.com/api`)
-5. Deploy. Frontend subdirectory routes (e.g. `/dashboard`, `/login`) work on direct load/refresh via Next.js and `skipTrailingSlashRedirect`.
+   - **Frontend**: `NEXT_PUBLIC_API_URL` = your backend URL (e.g. `https://square-puzzles-backend.onrender.com/api`)
+5. Deploy.
+
+**If the frontend shows 502 Bad Gateway:** In the frontend service, set **Root Directory** to `my-app`, **Build Command** to `npm install && npm run build`, and **Start Command** to `npm start`. Then trigger a new deploy.
 
 ### MongoDB Atlas
 1. Create cluster

@@ -1,9 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Standalone output for Render (smaller deploy, single server.js)
-  output: "standalone",
-
   // Allow images from external sources
   images: {
     remotePatterns: [
