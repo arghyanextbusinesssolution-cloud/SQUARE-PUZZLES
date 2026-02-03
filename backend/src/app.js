@@ -31,8 +31,9 @@ app.use(cors({
     if (allowedOrigins.includes('*')) return callback(null, true);
     // Allow if origin is in the whitelist
     if (allowedOrigins.includes(origin)) return callback(null, true);
-    // Otherwise, reject
-    return callback(new Error('CORS not allowed'), false);
+    // Otherwise, reject (don't throw — just deny CORS and log for debugging)
+    console.warn(`Blocked CORS request from origin: ${origin}`);
+    return callback(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
