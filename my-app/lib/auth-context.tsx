@@ -33,6 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           isLoading: false,
           isAuthenticated: true,
         });
+        console.log('[Auth] User session restored from cookie:', response.user.email);
       } else {
         setState({
           user: null,
@@ -40,7 +41,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           isAuthenticated: false,
         });
       }
-    } catch {
+    } catch (error) {
+      console.error('[Auth] Failed to restore session:', error);
       setState({
         user: null,
         isLoading: false,
@@ -50,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    console.log('[Auth] Initializing auth provider, checking session...');
     refreshUser();
   }, [refreshUser]);
 
