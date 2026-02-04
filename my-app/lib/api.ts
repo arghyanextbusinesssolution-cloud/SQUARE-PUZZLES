@@ -26,13 +26,23 @@ class ApiClient {
       url += `?${searchParams.toString()}`;
     }
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...fetchOptions.headers,
+    };
+
+    // Add localStorage token as Authorization header (fallback for cookies)
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+
     const config: RequestInit = {
       ...fetchOptions,
       credentials: 'include', // Important for HTTP-only cookies
-      headers: {
-        'Content-Type': 'application/json',
-        ...fetchOptions.headers,
-      },
+      headers,
     };
 
     const response = await fetch(url, config);

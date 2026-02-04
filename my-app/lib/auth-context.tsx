@@ -35,6 +35,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         console.log('[Auth] User session restored from cookie:', response.user.email);
       } else {
+        // Try to restore from localStorage as fallback
+        const storedToken = localStorage.getItem('auth_token');
+        if (storedToken) {
+          console.log('[Auth] Token found in localStorage, retrying session restore...');
+          try {
+            const retryResponse = await api.getMe() as { success: boolean; user: User };
+            if (retryResponse.success && retryResponse.user) {
+              setState({
+                user: retryResponse.user,
+                isLoading: false,
+                isAuthenticated: true,
+              });
+              console.log('[Auth] User session restored from localStorage token:', retryResponse.user.email);
+              return;
+            }
+          } catch (retryError) {
+            localStorage.removeItem('auth_token');
+          }
+        }
         setState({
           user: null,
           isLoading: false,
@@ -57,8 +76,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [refreshUser]);
 
   const login = async (email: string, password: string) => {
-    const response = await api.login(email, password) as { success: boolean; user: User };
+    const response = await api.login(email, password) as { success: boolean; user: User; token: string };
     if (response.success && response.user) {
+      // Store token in localStorage as backup
+      if (response.token) {
+        localStorage.setItem('auth_token', response.token);
+        console.log('[Auth] Token stored in localStorage');
+      }
       setState({
         user: response.user,
         isLoading: false,
@@ -68,8 +92,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const register = async (email: string, password: string, name?: string) => {
-    const response = await api.register(email, password, name) as { success: boolean; user: User; welcomeEmailSent?: boolean };
+    const response = await api.register(email, password, name) as { success: boolean; user: User; token: string; welcomeEmailSent?: boolean };
     if (response.success && response.user) {
+      // Store token in localStorage as backup
+      if (response.token) {
+        localStorage.setItem('auth_token', response.token);
+        console.log('[Auth] Token stored in localStorage');
+      }
       setState({
         user: response.user,
         isLoading: false,
@@ -84,6 +113,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await api.logout();
     } finally {
+      // Clear localStorage
+      localStorage.removeItem('auth_token');
+      console.log('[Auth] Token cleared from localStorage');
       setState({
         user: null,
         isLoading: false,

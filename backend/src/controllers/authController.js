@@ -22,6 +22,7 @@ const sendTokenResponse = (user, statusCode, res, message = 'Success') => {
     .json({
       success: true,
       message,
+      token, // Include token in response for localStorage backup
       user: {
         id: user._id,
         email: user.email,
@@ -67,9 +68,11 @@ const register = async (req, res, next) => {
     } else {
       console.warn('[Auth] Welcome email failed for:', email, emailResult.error);
     }
+    const token = user.getSignedJwtToken();
     const responsePayload = {
       success: true,
       message: 'Registration successful',
+      token, // Include token in response for localStorage backup
       user: {
         id: user._id,
         email: user.email,
@@ -80,7 +83,6 @@ const register = async (req, res, next) => {
       welcomeEmailSent: emailResult.success
     };
 
-    const token = user.getSignedJwtToken();
     res.status(201)
       .cookie('token', token, getCookieOptions())
       .json(responsePayload);
