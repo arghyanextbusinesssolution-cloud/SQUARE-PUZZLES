@@ -59,6 +59,9 @@ const checkGrid = async (req, res, next) => {
   try {
     const { grid, puzzleId } = req.body;
     
+    console.log(`[Puzzle] Checking grid for puzzle: ${puzzleId}`);
+    console.log(`[Puzzle] User grid:`, JSON.stringify(grid));
+    
     // Get puzzle with solution
     const puzzle = await Puzzle.findById(puzzleId).select('+solutionGrid');
     
@@ -68,6 +71,8 @@ const checkGrid = async (req, res, next) => {
         error: 'Puzzle not found'
       });
     }
+    
+    console.log(`[Puzzle] Solution grid:`, JSON.stringify(puzzle.solutionGrid));
     
     // Compare grids
     const result = compareGrids(grid, puzzle.solutionGrid);
@@ -147,7 +152,7 @@ const getHint = async (req, res, next) => {
   try {
     const { puzzleId } = req.body;
     
-    const puzzle = await Puzzle.findById(puzzleId);
+    const puzzle = await Puzzle.findById(puzzleId).select('+solutionGrid');
     
     if (!puzzle) {
       return res.status(404).json({
@@ -174,10 +179,18 @@ const getHint = async (req, res, next) => {
     
     await attempt.useHint();
     
+    // Build hint letters map - return the actual letters for hint cells
+    const hintLetters = {};
+    puzzle.hintCells.forEach(hc => {
+      const key = `${hc.row},${hc.col}`;
+      hintLetters[key] = puzzle.solutionGrid[hc.row]?.[hc.col] || '';
+    });
+    
     res.status(200).json({
       success: true,
       hintCells: puzzle.hintCells,
-      message: 'Hint cells highlighted'
+      hintLetters, // Map of cell positions to letters
+      message: 'Hint cells highlighted - fill in the highlighted cells!'
     });
   } catch (error) {
     next(error);

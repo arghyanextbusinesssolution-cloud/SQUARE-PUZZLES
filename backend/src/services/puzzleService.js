@@ -111,25 +111,38 @@ const compareGrids = (userGrid, solutionGrid) => {
   if (!userGrid || !solutionGrid) {
     return { status: 'incomplete', message: 'Invalid grid data' };
   }
-  
+
+  // Ensure grids are arrays
+  if (!Array.isArray(userGrid) || !Array.isArray(solutionGrid)) {
+    return { status: 'incomplete', message: 'Invalid grid format' };
+  }
+
+  const gridSize = solutionGrid.length;
   let allFilled = true;
   let allCorrect = true;
+  let cellsChecked = 0;
   
-  for (let row = 0; row < solutionGrid.length; row++) {
-    for (let col = 0; col < solutionGrid[row].length; col++) {
-      const solutionLetter = solutionGrid[row][col]?.toUpperCase() || '';
-      const userLetter = userGrid[row]?.[col]?.toUpperCase() || '';
+  for (let row = 0; row < gridSize; row++) {
+    for (let col = 0; col < gridSize; col++) {
+      const solutionLetter = solutionGrid[row]?.[col]?.toUpperCase().trim() || '';
+      const userLetter = userGrid[row]?.[col]?.toUpperCase().trim() || '';
       
-      // Skip empty cells in solution
+      // Skip empty cells in solution (non-playable cells)
       if (!solutionLetter) continue;
       
+      cellsChecked++;
+      
       if (!userLetter) {
+        console.log(`[Puzzle] Empty cell found at (${row}, ${col}), expected: ${solutionLetter}`);
         allFilled = false;
       } else if (userLetter !== solutionLetter) {
+        console.log(`[Puzzle] Wrong letter at (${row}, ${col}): got "${userLetter}", expected "${solutionLetter}"`);
         allCorrect = false;
       }
     }
   }
+
+  console.log(`[Puzzle] Grid check: ${cellsChecked} cells checked, allFilled: ${allFilled}, allCorrect: ${allCorrect}`);
   
   if (!allFilled) {
     return { status: 'incomplete', message: 'Please fill in all cells' };

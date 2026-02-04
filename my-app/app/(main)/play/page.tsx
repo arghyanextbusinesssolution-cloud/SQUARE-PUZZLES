@@ -110,7 +110,22 @@ export default function PlayPage() {
     
     setIsChecking(true);
     try {
-      const response = await api.checkGrid(puzzle.id, grid) as {
+      // Merge visible letters and hint cells into the grid before checking
+      const gridToCheck = grid.map(row => [...row]);
+      
+      // Add visible letters
+      visibleLetters.forEach(vl => {
+        gridToCheck[vl.row][vl.col] = vl.letter;
+      });
+      
+      // Add hint letters if hints were used
+      if (showHints) {
+        hintCells.forEach(hc => {
+          gridToCheck[hc.row][hc.col] = grid[hc.row]?.[hc.col] || '';
+        });
+      }
+      
+      const response = await api.checkGrid(puzzle.id, gridToCheck) as {
         success: boolean;
         result: CheckResult;
       };
@@ -144,12 +159,24 @@ export default function PlayPage() {
       const response = await api.getHint(puzzle.id) as {
         success: boolean;
         hintCells: CellPosition[];
+        hintLetters: Record<string, string>;
         message: string;
       };
 
       if (response.success) {
         setHintCells(response.hintCells);
         setShowHints(true);
+        
+        // Auto-fill hint cells in the grid
+        const newGrid = grid.map(row => [...row]);
+        Object.entries(response.hintLetters).forEach(([key, letter]) => {
+          const [row, col] = key.split(',').map(Number);
+          newGrid[row][col] = letter;
+        });
+        setGrid(newGrid);
+        
+        // Save updated grid
+        await saveProgress(newGrid);
         setSystemMessage(response.message);
       }
     } catch (error) {
