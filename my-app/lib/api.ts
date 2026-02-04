@@ -28,8 +28,12 @@ class ApiClient {
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...fetchOptions.headers,
     };
+
+    // Merge existing headers if they exist
+    if (fetchOptions.headers && typeof fetchOptions.headers === 'object') {
+      Object.assign(headers, fetchOptions.headers);
+    }
 
     // Add localStorage token as Authorization header (fallback for cookies)
     if (typeof window !== 'undefined') {
