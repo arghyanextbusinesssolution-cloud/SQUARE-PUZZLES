@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { MainLayout } from '@/components/layout';
 import { Card, CardContent, Button, Input } from '@/components/ui';
+import { PuzzleGrid } from '@/components/puzzle';
 import { api } from '@/lib/api';
 import { HiPlus, HiTrash, HiArrowLeft } from 'react-icons/hi';
 import Link from 'next/link';
@@ -25,6 +26,10 @@ export default function CreatePuzzlePage() {
   const [words, setWords] = useState<WordEntry[]>([
     { word: '', startRow: 0, startCol: 0, direction: 'horizontal' },
   ]);
+  const [grid, setGrid] = useState<string[][]>(() =>
+    Array(gridSize).fill(null).map(() => Array(gridSize).fill(''))
+  );
+  const [editByGrid, setEditByGrid] = useState(false);
   const [visibleCells, setVisibleCells] = useState<string>('');
   const [hintCells, setHintCells] = useState<string>('');
   const [dailyMessage, setDailyMessage] = useState('');
@@ -51,32 +56,41 @@ export default function CreatePuzzlePage() {
     setPuzzleDate(today.toISOString().split('T')[0]);
   }, []);
 
-  // Generate preview grid
   useEffect(() => {
-    const grid: string[][] = Array(gridSize)
-      .fill(null)
-      .map(() => Array(gridSize).fill(''));
+    // Ensure grid size state matches selection
+    setGrid(Array(gridSize).fill(null).map(() => Array(gridSize).fill('')));
+    // If not editing by grid, keep preview in sync from words
+  }, [gridSize]);
 
-    words.forEach((wordEntry) => {
-      if (!wordEntry.word) return;
-      const upperWord = wordEntry.word.toUpperCase();
+  useEffect(() => {
+    if (editByGrid) {
+      setPreviewGrid(grid);
+    } else {
+      const g: string[][] = Array(gridSize)
+        .fill(null)
+        .map(() => Array(gridSize).fill(''));
 
-      for (let i = 0; i < upperWord.length; i++) {
-        const row = wordEntry.direction === 'vertical' 
-          ? wordEntry.startRow + i 
-          : wordEntry.startRow;
-        const col = wordEntry.direction === 'horizontal' 
-          ? wordEntry.startCol + i 
-          : wordEntry.startCol;
+      words.forEach((wordEntry) => {
+        if (!wordEntry.word) return;
+        const upperWord = wordEntry.word.toUpperCase();
 
-        if (row >= 0 && row < gridSize && col >= 0 && col < gridSize) {
-          grid[row][col] = upperWord[i];
+        for (let i = 0; i < upperWord.length; i++) {
+          const row = wordEntry.direction === 'vertical'
+            ? wordEntry.startRow + i
+            : wordEntry.startRow;
+          const col = wordEntry.direction === 'horizontal'
+            ? wordEntry.startCol + i
+            : wordEntry.startCol;
+
+          if (row >= 0 && row < gridSize && col >= 0 && col < gridSize) {
+            g[row][col] = upperWord[i];
+          }
         }
-      }
-    });
+      });
 
-    setPreviewGrid(grid);
-  }, [words, gridSize]);
+      setPreviewGrid(g);
+    }
+  }, [words, grid, gridSize, editByGrid]);
 
   const addWord = () => {
     setWords([
@@ -95,6 +109,63 @@ export default function CreatePuzzlePage() {
     setWords(newWords);
   };
 
+  const handleCellChange = (row: number, col: number, value: string) => {
+    setGrid((g) => {
+      const next = g.map((r) => [...r]);
+      next[row][col] = value.toUpperCase();
+      return next;
+    });
+  };
+
+  const deriveWordsFromGrid = (g: string[][]): WordEntry[] => {
+    const results: WordEntry[] = [];
+    // Horizontal words
+    for (let r = 0; r < g.length; r++) {
+      let c = 0;
+      while (c < g[r].length) {
+        if (!g[r][c]) { c++; continue; }
+        let start = c;
+        let word = '';
+        while (c < g[r].length && g[r][c]) {
+          word += g[r][c];
+          c++;
+        }
+        if (word.length >= 2) {
+          results.push({ word, startRow: r, startCol: start, direction: 'horizontal' });
+        }
+      }
+    }
+
+    // Vertical words
+    for (let c = 0; c < g[0].length; c++) {
+      let r = 0;
+      while (r < g.length) {
+        if (!g[r][c]) { r++; continue; }
+        let start = r;
+        let word = '';
+        while (r < g.length && g[r][c]) {
+          word += g[r][c];
+          r++;
+        }
+        if (word.length >= 2) {
+          results.push({ word, startRow: start, startCol: c, direction: 'vertical' });
+        }
+      }
+    }
+
+    return results;
+  };
+
+  const syncWordsFromGrid = () => {
+    const derived = deriveWordsFromGrid(grid);
+    if (derived.length === 0) {
+      setError('No words found in grid. Add contiguous letters of length >= 2.');
+      return;
+    }
+    setWords(derived);
+    setError('');
+  };
+
   const parseCells = (cellsStr: string): { row: number; col: number }[] => {
     if (!cellsStr.trim()) return [];
     return cellsStr.split(',').map((cell) => {
@@ -110,7 +181,7 @@ export default function CreatePuzzlePage() {
 
     try {
       // Validate
-      const validWords = words.filter((w) => w.word.trim());
+      const validWords = (editByGrid ? deriveWordsFromGrid(grid) : words).filter((w) => w.word.trim());
       if (validWords.length === 0) {
         throw new Error('At least one word is required');
       }
@@ -345,41 +416,33 @@ export default function CreatePuzzlePage() {
               <Card className="sticky top-4">
                 <CardContent>
                   <h2 className="font-semibold text-gray-900 mb-4">Preview</h2>
-                  <div className="flex justify-center mb-4">
-                    <div className="inline-flex flex-col gap-1">
-                      {previewGrid.map((row, rowIndex) => (
-                        <div key={rowIndex} className="flex gap-1">
-                          {row.map((cell, colIndex) => {
-                            const isVisible = visibleCells
-                              .split(',')
-                              .some(
-                                (c) =>
-                                  c.trim() === `${rowIndex}:${colIndex}`
-                              );
-                            const isHint = hintCells
-                              .split(',')
-                              .some(
-                                (c) =>
-                                  c.trim() === `${rowIndex}:${colIndex}`
-                              );
+                  <div className="flex flex-col items-center mb-4 gap-4">
+                    <div className="flex items-center gap-3">
+                      <label className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={editByGrid}
+                          onChange={(e) => setEditByGrid(e.target.checked)}
+                        />
+                        Edit grid directly
+                      </label>
+                      {editByGrid && (
+                        <Button type="button" variant="outline" size="sm" onClick={syncWordsFromGrid}>
+                          Sync words from grid
+                        </Button>
+                      )}
+                    </div>
 
-                            return (
-                              <div
-                                key={colIndex}
-                                className={`
-                                  w-10 h-10 border-2 rounded flex items-center justify-center
-                                  font-bold text-lg uppercase
-                                  ${cell ? 'border-gray-300' : 'border-gray-200 bg-gray-50'}
-                                  ${isVisible ? 'bg-emerald-100 border-emerald-300' : ''}
-                                  ${isHint ? 'bg-blue-100 border-blue-300' : ''}
-                                `}
-                              >
-                                {cell}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ))}
+                    <div className="flex justify-center">
+                      <PuzzleGrid
+                        gridSize={gridSize}
+                        grid={editByGrid ? grid : previewGrid}
+                        visibleLetters={[]}
+                        hintCells={[]}
+                        showHints={false}
+                        onCellChange={handleCellChange}
+                        disabled={!editByGrid}
+                      />
                     </div>
                   </div>
                   <div className="flex gap-4 text-xs text-gray-500 justify-center mb-6">

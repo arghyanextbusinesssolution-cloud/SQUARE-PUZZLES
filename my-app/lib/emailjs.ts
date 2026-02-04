@@ -20,6 +20,9 @@ export const initEmailJS = () => {
   }
 };
 
+// Initialize immediately if public key is present (defensive — ensures later sends don't fail)
+initEmailJS();
+
 // Send welcome email
 export const sendWelcomeEmail = async (userEmail: string, userName: string) => {
   console.log('[EmailJS] Sending welcome email to:', userEmail);
@@ -59,6 +62,7 @@ export const sendPasswordResetEmail = async (
   }
 
   try {
+    initEmailJS();
     await emailjs.send(SERVICE_ID, TEMPLATES.PASSWORD_RESET, {
       to_email: userEmail,
       to_name: userName || 'Player',
@@ -78,6 +82,7 @@ export const sendDailyReminder = async (userEmail: string, userName: string) => 
   }
 
   try {
+    initEmailJS();
     await emailjs.send(SERVICE_ID, TEMPLATES.DAILY_REMINDER, {
       to_email: userEmail,
       to_name: userName || 'Player',
@@ -106,6 +111,7 @@ export const sendReportConfirmation = async (
   }
 
   try {
+    initEmailJS();
     await emailjs.send(SERVICE_ID, TEMPLATES.REPORT_CONFIRMATION, {
       to_email: adminEmail,
       report_id: reportDetails.reportId,
@@ -133,6 +139,7 @@ export const sendCompletionNotification = async (
   }
 
   try {
+    initEmailJS();
     await emailjs.send(SERVICE_ID, TEMPLATES.COMPLETION, {
       to_email: userEmail,
       to_name: userName || 'Player',

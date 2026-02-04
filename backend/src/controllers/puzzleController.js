@@ -117,15 +117,17 @@ const checkGrid = async (req, res, next) => {
 const saveProgress = async (req, res, next) => {
   try {
     const { grid, puzzleId } = req.body;
-    
-    let attempt = await PuzzleAttempt.getOrCreate(
-      req.user._id, 
-      puzzleId, 
-      grid.length
-    );
-    
-    attempt.currentGrid = grid;
-    await attempt.save();
+    // Use an atomic upsert to avoid optimistic concurrency/version errors
+    const filter = { userId: req.user._id, puzzleId };
+    const update = { $set: { currentGrid: grid } };
+    const options = { new: true, upsert: true, setDefaultsOnInsert: true };
+
+    // If creating new attempt, ensure currentGrid has correct dimensions
+    if (!grid || !Array.isArray(grid)) {
+      return res.status(400).json({ success: false, error: 'Invalid grid' });
+    }
+
+    await PuzzleAttempt.findOneAndUpdate(filter, update, options);
     
     res.status(200).json({
       success: true,
