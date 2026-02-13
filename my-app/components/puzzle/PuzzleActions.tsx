@@ -7,6 +7,7 @@ import {
   HiLightBulb,
   HiClipboardCopy,
   HiExclamationCircle,
+  HiQuestionMarkCircle,
 } from 'react-icons/hi';
 
 interface PuzzleActionsProps {
@@ -14,6 +15,7 @@ interface PuzzleActionsProps {
   onHint: () => void;
   onCopyYesterday: () => void;
   onReport: () => void;
+  onHowToPlay: () => void;
   isChecking?: boolean;
   hintUsed?: boolean;
 }
@@ -23,6 +25,7 @@ export default function PuzzleActions({
   onHint,
   onCopyYesterday,
   onReport,
+  onHowToPlay,
   isChecking = false,
   hintUsed = false,
 }: PuzzleActionsProps) {
@@ -43,6 +46,11 @@ export default function PuzzleActions({
       onClick: onCopyYesterday,
     },
     {
+      label: 'How to Play',
+      icon: <HiQuestionMarkCircle className="w-5 h-5 text-blue-500" />,
+      onClick: onHowToPlay,
+    },
+    {
       label: 'Report Problem',
       icon: <HiExclamationCircle className="w-5 h-5 text-red-500" />,
       onClick: onReport,
@@ -54,6 +62,7 @@ export default function PuzzleActions({
     <DropdownButton
       label={isChecking ? 'Checking...' : 'Actions'}
       items={items}
+      align="right"
     />
   );
 }

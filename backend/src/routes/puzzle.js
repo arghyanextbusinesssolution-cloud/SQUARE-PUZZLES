@@ -6,6 +6,7 @@ const {
   checkGrid,
   saveProgress,
   getHint,
+  getShareResult,
   getYesterdayResult,
   reportProblem,
   getHistory
@@ -21,6 +22,7 @@ router.get('/today', optionalAuth, getTodaysPuzzle);
 router.post('/check', protect, gridCheckRules, validate, checkGrid);
 router.post('/save', protect, saveProgress);
 router.post('/hint', protect, getHint);
+router.get('/share/:puzzleId', protect, getShareResult);
 router.get('/yesterday', protect, getYesterdayResult);
 router.post('/report', protect, reportRules, validate, reportProblem);
 router.get('/history', protect, getHistory);

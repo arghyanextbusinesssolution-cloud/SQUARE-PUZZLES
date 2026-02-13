@@ -44,12 +44,20 @@ export interface Word {
   direction: 'horizontal' | 'vertical';
 }
 
+export interface Clue {
+  number: number;
+  text: string;
+}
+
 export interface Puzzle {
   id: string;
   puzzleDate: string;
   gridSize: number;
   visibleLetters: VisibleLetter[];
+  hintCells: CellPosition[];
   dailyMessage: string;
+  acrossClues?: Clue[];
+  downClues?: Clue[];
 }
 
 export interface PuzzleAttempt {
@@ -66,6 +74,8 @@ export interface PuzzleData {
 export interface CheckResult {
   status: 'incomplete' | 'correct' | 'incorrect';
   message: string;
+  incorrectCells?: CellPosition[];
+  correctCells?: CellPosition[];
 }
 
 // API Response types

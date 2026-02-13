@@ -17,12 +17,15 @@ const adminLogSchema = new mongoose.Schema({
       'user_unbanned',
       'report_resolved',
       'settings_changed',
-      'admin_login'
+      'admin_login',
+      'announcement_created',
+      'announcement_updated',
+      'announcement_deleted'
     ]
   },
   targetType: {
     type: String,
-    enum: ['puzzle', 'user', 'report', 'settings'],
+    enum: ['puzzle', 'user', 'report', 'settings', 'announcement'],
     required: true
   },
   targetId: {
@@ -49,7 +52,7 @@ adminLogSchema.index({ action: 1, createdAt: -1 });
 adminLogSchema.index({ targetType: 1, targetId: 1 });
 
 // Static method to log admin action
-adminLogSchema.statics.logAction = async function(adminId, action, targetType, targetId = null, details = {}, req = null) {
+adminLogSchema.statics.logAction = async function (adminId, action, targetType, targetId = null, details = {}, req = null) {
   return this.create({
     adminId,
     action,

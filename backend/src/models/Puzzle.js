@@ -78,6 +78,24 @@ const puzzleSchema = new mongoose.Schema({
     default: '',
     maxlength: [500, 'Daily message cannot exceed 500 characters']
   },
+  acrossClues: {
+    type: [
+      {
+        number: Number,
+        text: { type: String, maxlength: [250, 'Clue cannot exceed 250 characters'] }
+      }
+    ],
+    default: []
+  },
+  downClues: {
+    type: [
+      {
+        number: Number,
+        text: { type: String, maxlength: [250, 'Clue cannot exceed 250 characters'] }
+      }
+    ],
+    default: []
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

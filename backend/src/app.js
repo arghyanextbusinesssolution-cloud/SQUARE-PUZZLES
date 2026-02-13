@@ -8,8 +8,11 @@ const rateLimit = require('express-rate-limit');
 // Import routes
 const authRoutes = require('./routes/auth');
 const puzzleRoutes = require('./routes/puzzle');
+const attemptRoutes = require('./routes/attempt');
 const adminRoutes = require('./routes/admin');
 const userRoutes = require('./routes/user');
+const announcementRoutes = require('./routes/announcement');
+
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -24,7 +27,7 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 const allowedOrigins = FRONTEND_URL.split(',').map(s => s.trim());
 
 app.use(cors({
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
     // If no origin (e.g. server-to-server requests or tools), allow
     if (!origin) return callback(null, true);
     // Allow wildcard
@@ -69,18 +72,21 @@ if (process.env.NODE_ENV === 'development') {
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'ok', 
+  res.status(200).json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV 
+    environment: process.env.NODE_ENV
   });
 });
 
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/puzzle', puzzleRoutes);
+app.use('/api/attempt', attemptRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/announcements', announcementRoutes);
+
 
 // 404 handler
 app.use((req, res, next) => {

@@ -8,7 +8,7 @@ const { validatePuzzleConfig, buildSolutionGrid } = require('../services/puzzleS
  */
 const createPuzzle = async (req, res, next) => {
   try {
-    const { puzzleDate, gridSize, words, visibleCells, hintCells, dailyMessage } = req.body;
+    const { puzzleDate, gridSize, words, visibleCells, hintCells, dailyMessage, acrossClues, downClues } = req.body;
     
     // Check if puzzle already exists for this date
     const existingPuzzle = await Puzzle.findOne({
@@ -49,6 +49,8 @@ const createPuzzle = async (req, res, next) => {
       visibleCells: visibleCells || [],
       hintCells: hintCells || [],
       dailyMessage: dailyMessage || '',
+      acrossClues: acrossClues || [],
+      downClues: downClues || [],
       createdBy: req.user._id
     });
     
@@ -158,7 +160,7 @@ const getPuzzle = async (req, res, next) => {
  */
 const updatePuzzle = async (req, res, next) => {
   try {
-    const { gridSize, words, visibleCells, hintCells, dailyMessage, isActive } = req.body;
+    const { gridSize, words, visibleCells, hintCells, dailyMessage, isActive, acrossClues, downClues } = req.body;
     
     let puzzle = await Puzzle.findById(req.params.id);
     
@@ -197,6 +199,8 @@ const updatePuzzle = async (req, res, next) => {
     if (hintCells) puzzle.hintCells = hintCells;
     if (dailyMessage !== undefined) puzzle.dailyMessage = dailyMessage;
     if (isActive !== undefined) puzzle.isActive = isActive;
+    if (acrossClues) puzzle.acrossClues = acrossClues;
+    if (downClues) puzzle.downClues = downClues;
     
     await puzzle.save();
     

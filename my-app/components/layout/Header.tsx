@@ -26,12 +26,10 @@ export default function Header({ onMenuClick, showMenu = true }: HeaderProps) {
               <HiMenu className="w-6 h-6" />
             </button>
           )}
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">SP</span>
-            </div>
+          <Link href={user?.role === 'admin' ? '/admin' : '/'} className="flex items-center gap-2">
+            <img src="/logo2.png" alt="WORD SQUARES" className="w-8 h-8 object-contain" />
             <span className="font-semibold text-gray-900 text-lg hidden sm:block">
-              Square Puzzles
+              WORD SQUARES
             </span>
           </Link>
         </div>

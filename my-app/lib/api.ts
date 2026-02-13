@@ -17,9 +17,9 @@ class ApiClient {
 
   private async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
     const { params, ...fetchOptions } = options;
-    
+
     let url = `${this.baseUrl}${endpoint}`;
-    
+
     // Add query params
     if (params) {
       const searchParams = new URLSearchParams(params);
@@ -131,6 +131,13 @@ class ApiClient {
     });
   }
 
+  async finishAttempt(puzzleId: string, grid?: string[][]) {
+    return this.request('/attempt/finish', {
+      method: 'POST',
+      body: JSON.stringify({ puzzleId, grid }),
+    });
+  }
+
   async getHint(puzzleId: string) {
     return this.request('/puzzle/hint', {
       method: 'POST',
@@ -138,8 +145,22 @@ class ApiClient {
     });
   }
 
-  async getYesterdayResult() {
-    return this.request('/puzzle/yesterday');
+  async getYesterdayResult(useShareMatrix?: boolean, elapsedSeconds?: number) {
+    return this.request('/puzzle/yesterday', {
+      params: {
+        useShareMatrix: String(!!useShareMatrix),
+        elapsedSeconds: elapsedSeconds !== undefined ? String(elapsedSeconds) : '',
+      },
+    });
+  }
+
+  async getShareResult(puzzleId: string, useShareMatrix?: boolean, elapsedSeconds?: number) {
+    return this.request(`/puzzle/share/${puzzleId}`, {
+      params: {
+        useShareMatrix: String(!!useShareMatrix),
+        elapsedSeconds: elapsedSeconds !== undefined ? String(elapsedSeconds) : '',
+      },
+    });
   }
 
   async reportProblem(data: {
@@ -191,6 +212,8 @@ class ApiClient {
     visibleCells?: { row: number; col: number }[];
     hintCells?: { row: number; col: number }[];
     dailyMessage?: string;
+    acrossClues?: { number: number; text: string }[];
+    downClues?: { number: number; text: string }[];
   }) {
     return this.request('/admin/puzzle', {
       method: 'POST',
@@ -227,6 +250,35 @@ class ApiClient {
   async getUsers(page: number = 1, limit: number = 20) {
     return this.request('/admin/users', {
       params: { page: String(page), limit: String(limit) },
+    });
+  }
+
+  // Announcement endpoints
+  async getAnnouncements() {
+    return this.request('/announcements');
+  }
+
+  async getAllAnnouncements() {
+    return this.request('/announcements/admin');
+  }
+
+  async createAnnouncement(data: { title: string; message: string; type?: string; expiresAt?: string; isActive?: boolean }) {
+    return this.request('/announcements', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateAnnouncement(id: string, data: Partial<{ title: string; message: string; type?: string; expiresAt?: string; isActive?: boolean }>) {
+    return this.request(`/announcements/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteAnnouncement(id: string) {
+    return this.request(`/announcements/${id}`, {
+      method: 'DELETE',
     });
   }
 }

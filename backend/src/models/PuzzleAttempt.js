@@ -11,6 +11,21 @@ const puzzleAttemptSchema = new mongoose.Schema({
     ref: 'Puzzle',
     required: true
   },
+  startedAt: {
+    type: Date,
+    default: Date.now
+  },
+  finishedAt: {
+    type: Date
+  },
+  timeTakenSeconds: {
+    type: Number,
+    default: 0
+  },
+  completed: {
+    type: Boolean,
+    default: false
+  },
   currentGrid: {
     type: [[String]], // 2D array of user's current answers
     default: []
@@ -64,6 +79,12 @@ puzzleAttemptSchema.statics.getOrCreate = async function(userId, puzzleId, gridS
     });
   }
   
+  // If an existing attempt is missing startedAt (older documents), set it to createdAt
+  if (attempt && !attempt.startedAt) {
+    attempt.startedAt = attempt.createdAt || new Date();
+    await attempt.save();
+  }
+  
   return attempt;
 };
 
@@ -115,7 +136,17 @@ puzzleAttemptSchema.methods.useHint = async function() {
 // Method to mark as complete
 puzzleAttemptSchema.methods.markComplete = async function(status) {
   this.status = status;
-  this.completedAt = new Date();
+  const finished = new Date();
+  this.completedAt = finished;
+  this.finishedAt = finished;
+
+  // Ensure startedAt exists; fall back to createdAt or now
+  if (!this.startedAt) this.startedAt = this.createdAt || finished;
+
+  this.timeTakenSeconds = Math.max(0, Math.floor((this.finishedAt - this.startedAt) / 1000));
+  this.timeSpent = this.timeTakenSeconds;
+  this.completed = true;
+
   await this.save();
   return this;
 };

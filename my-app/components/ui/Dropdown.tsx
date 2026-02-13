@@ -75,9 +75,10 @@ export default function Dropdown({ trigger, items, align = 'right' }: DropdownPr
 interface DropdownButtonProps {
   label: string;
   items: DropdownItem[];
+  align?: 'left' | 'right';
 }
 
-export function DropdownButton({ label, items }: DropdownButtonProps) {
+export function DropdownButton({ label, items, align = 'right' }: DropdownButtonProps) {
   return (
     <Dropdown
       trigger={
@@ -87,6 +88,7 @@ export function DropdownButton({ label, items }: DropdownButtonProps) {
         </button>
       }
       items={items}
+      align={align}
     />
   );
 }

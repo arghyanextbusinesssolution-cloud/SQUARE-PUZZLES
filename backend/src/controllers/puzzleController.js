@@ -9,27 +9,24 @@ const { compareGrids, generateClipboardText } = require('../services/puzzleServi
 const getTodaysPuzzle = async (req, res, next) => {
   try {
     const puzzle = await Puzzle.getTodaysPuzzle();
-    
+
     if (!puzzle) {
       return res.status(404).json({
         success: false,
         error: 'No puzzle available for today'
       });
     }
-    
+
     // Get puzzle with solution to extract visible letters
     const puzzleWithSolution = await Puzzle.findById(puzzle._id).select('+solutionGrid');
     const visibleLetters = puzzleWithSolution.getVisibleLetters();
-    
-    // Get user's attempt if authenticated
+
+    // Get or create user's attempt if authenticated
     let attempt = null;
     if (req.user) {
-      attempt = await PuzzleAttempt.findOne({
-        userId: req.user._id,
-        puzzleId: puzzle._id
-      });
+      attempt = await PuzzleAttempt.getOrCreate(req.user._id, puzzle._id, puzzle.gridSize);
     }
-    
+
     res.status(200).json({
       success: true,
       puzzle: {
@@ -37,12 +34,19 @@ const getTodaysPuzzle = async (req, res, next) => {
         puzzleDate: puzzle.puzzleDate,
         gridSize: puzzle.gridSize,
         visibleLetters,
-        dailyMessage: puzzle.dailyMessage
+        hintCells: puzzle.hintCells || [],
+        dailyMessage: puzzle.dailyMessage,
+        acrossClues: puzzle.acrossClues || [],
+        downClues: puzzle.downClues || []
       },
       attempt: attempt ? {
         currentGrid: attempt.currentGrid,
         hintUsed: attempt.hintUsed,
-        status: attempt.status
+        status: attempt.status,
+        startedAt: attempt.startedAt || null,
+        finishedAt: attempt.finishedAt || null,
+        timeTakenSeconds: attempt.timeTakenSeconds || null,
+        completed: attempt.completed || false
       } : null
     });
   } catch (error) {
@@ -58,31 +62,31 @@ const getTodaysPuzzle = async (req, res, next) => {
 const checkGrid = async (req, res, next) => {
   try {
     const { grid, puzzleId } = req.body;
-    
+
     console.log(`[Puzzle] Checking grid for puzzle: ${puzzleId}`);
     console.log(`[Puzzle] User grid:`, JSON.stringify(grid));
-    
+
     // Get puzzle with solution
     const puzzle = await Puzzle.findById(puzzleId).select('+solutionGrid');
-    
+
     if (!puzzle) {
       return res.status(404).json({
         success: false,
         error: 'Puzzle not found'
       });
     }
-    
+
     console.log(`[Puzzle] Solution grid:`, JSON.stringify(puzzle.solutionGrid));
-    
+
     // Compare grids
     const result = compareGrids(grid, puzzle.solutionGrid);
-    
+
     // Update or create attempt
     let attempt = await PuzzleAttempt.findOne({
       userId: req.user._id,
       puzzleId
     });
-    
+
     if (!attempt) {
       attempt = new PuzzleAttempt({
         userId: req.user._id,
@@ -92,21 +96,24 @@ const checkGrid = async (req, res, next) => {
     } else {
       attempt.currentGrid = grid;
     }
-    
+
     attempt.attempts += 1;
     attempt.status = result.status;
-    
     if (result.status === 'correct') {
-      attempt.completedAt = new Date();
+      await attempt.markComplete('correct');
+    } else {
+      await attempt.save();
     }
-    
-    await attempt.save();
-    
+
     res.status(200).json({
       success: true,
       result: {
         status: result.status,
-        message: result.message
+        message: result.message,
+        incorrectCells: result.incorrectCells || [],
+        correctCells: result.correctCells || [],
+        timeTakenSeconds: attempt.timeTakenSeconds || null,
+        finishedAt: attempt.finishedAt || null
       }
     });
   } catch (error) {
@@ -133,7 +140,7 @@ const saveProgress = async (req, res, next) => {
     }
 
     await PuzzleAttempt.findOneAndUpdate(filter, update, options);
-    
+
     res.status(200).json({
       success: true,
       message: 'Progress saved'
@@ -151,41 +158,41 @@ const saveProgress = async (req, res, next) => {
 const getHint = async (req, res, next) => {
   try {
     const { puzzleId } = req.body;
-    
+
     const puzzle = await Puzzle.findById(puzzleId).select('+solutionGrid');
-    
+
     if (!puzzle) {
       return res.status(404).json({
         success: false,
         error: 'Puzzle not found'
       });
     }
-    
+
     // Mark hint as used in attempt
     let attempt = await PuzzleAttempt.findOne({
       userId: req.user._id,
       puzzleId
     });
-    
+
     if (!attempt) {
       attempt = new PuzzleAttempt({
         userId: req.user._id,
         puzzleId,
-        currentGrid: Array(puzzle.gridSize).fill(null).map(() => 
+        currentGrid: Array(puzzle.gridSize).fill(null).map(() =>
           Array(puzzle.gridSize).fill('')
         )
       });
     }
-    
+
     await attempt.useHint();
-    
+
     // Build hint letters map - return the actual letters for hint cells
     const hintLetters = {};
     puzzle.hintCells.forEach(hc => {
       const key = `${hc.row},${hc.col}`;
       hintLetters[key] = puzzle.solutionGrid[hc.row]?.[hc.col] || '';
     });
-    
+
     res.status(200).json({
       success: true,
       hintCells: puzzle.hintCells,
@@ -205,20 +212,20 @@ const getHint = async (req, res, next) => {
 const getYesterdayResult = async (req, res, next) => {
   try {
     const puzzle = await Puzzle.getYesterdaysPuzzle();
-    
+
     if (!puzzle) {
       return res.status(404).json({
         success: false,
         error: 'No puzzle available from yesterday'
       });
     }
-    
+
     // Get user's attempt
     const attempt = await PuzzleAttempt.findOne({
       userId: req.user._id,
       puzzleId: puzzle._id
     });
-    
+
     // Generate clipboard text
     const clipboardText = generateClipboardText(
       puzzle.solutionGrid,
@@ -226,7 +233,7 @@ const getYesterdayResult = async (req, res, next) => {
       puzzle.puzzleDate,
       attempt?.hintUsed || false
     );
-    
+
     res.status(200).json({
       success: true,
       puzzle: {
@@ -256,13 +263,13 @@ const getYesterdayResult = async (req, res, next) => {
 const reportProblem = async (req, res, next) => {
   try {
     const { puzzleId, userGrid, reportType, description } = req.body;
-    
+
     // Get user's attempt
     const attempt = await PuzzleAttempt.findOne({
       userId: req.user._id,
       puzzleId
     });
-    
+
     const report = await Report.create({
       userId: req.user._id,
       puzzleId,
@@ -271,11 +278,60 @@ const reportProblem = async (req, res, next) => {
       reportType: reportType || 'other',
       description
     });
-    
+
     res.status(201).json({
       success: true,
       message: 'Problem reported successfully. Thank you for your feedback!',
       reportId: report._id
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get sharing result for a puzzle
+ * @route   GET /api/puzzle/share/:puzzleId
+ * @access  Private
+ */
+const getShareResult = async (req, res, next) => {
+  try {
+    const { puzzleId } = req.params;
+
+    // Get puzzle with solution
+    const puzzle = await Puzzle.findById(puzzleId).select('+solutionGrid');
+
+    if (!puzzle) {
+      return res.status(404).json({
+        success: false,
+        error: 'Puzzle not found'
+      });
+    }
+
+    // Get user's attempt
+    const attempt = await PuzzleAttempt.findOne({
+      userId: req.user._id,
+      puzzleId: puzzle._id
+    });
+
+    if (!attempt) {
+      return res.status(404).json({
+        success: false,
+        error: 'No attempt found for this puzzle'
+      });
+    }
+
+    // Generate clipboard text
+    const clipboardText = generateClipboardText(
+      puzzle.solutionGrid,
+      puzzle.hintCells,
+      puzzle.puzzleDate,
+      attempt.hintUsed || false
+    );
+
+    res.status(200).json({
+      success: true,
+      clipboardText
     });
   } catch (error) {
     next(error);
@@ -292,15 +348,15 @@ const getHistory = async (req, res, next) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-    
+
     const attempts = await PuzzleAttempt.find({ userId: req.user._id })
       .populate('puzzleId', 'puzzleDate gridSize dailyMessage')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
-    
+
     const total = await PuzzleAttempt.countDocuments({ userId: req.user._id });
-    
+
     res.status(200).json({
       success: true,
       data: attempts,
@@ -323,5 +379,6 @@ module.exports = {
   getHint,
   getYesterdayResult,
   reportProblem,
-  getHistory
+  getHistory,
+  getShareResult
 };

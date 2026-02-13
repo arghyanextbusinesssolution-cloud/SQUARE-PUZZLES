@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import { MainLayout } from '@/components/layout';
+import { AdminLayout } from '@/components/admin';
 import { Card, CardContent, Button } from '@/components/ui';
 import { api } from '@/lib/api';
 import type { DashboardStats } from '@/types';
@@ -72,11 +72,11 @@ export default function AdminDashboardPage() {
 
   if (authLoading || isLoading) {
     return (
-      <MainLayout>
+      <AdminLayout>
         <div className="flex items-center justify-center py-20">
           <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />
         </div>
-      </MainLayout>
+      </AdminLayout>
     );
   }
 
@@ -85,7 +85,7 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <MainLayout>
+    <AdminLayout>
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -182,7 +182,7 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </MainLayout>
+    </AdminLayout>
   );
 }
 

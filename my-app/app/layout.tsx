@@ -14,15 +14,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Square Puzzles - Daily Word Puzzle Game",
-  description: "Challenge yourself with a new word puzzle every day. Play Square Puzzles now!",
+  title: "WORD SQUARES - Daily Word Puzzle Game",
+  description: "Challenge yourself with a new word puzzle every day. Play WORD SQUARES now!",
   keywords: ["puzzle", "word game", "daily puzzle", "brain teaser"],
-  authors: [{ name: "Square Puzzles" }],
+  authors: [{ name: "WORD SQUARES" }],
   openGraph: {
-    title: "Square Puzzles - Daily Word Puzzle Game",
+    title: "WORD SQUARES - Daily Word Puzzle Game",
     description: "Challenge yourself with a new word puzzle every day.",
     type: "website",
   },
+  icons: {
+    icon: '/logo2.png',
+    shortcut: '/logo2.png',
+    apple: '/logo2.png'
+  }
 };
 
 export default function RootLayout({
@@ -32,6 +37,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/logo2.png" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

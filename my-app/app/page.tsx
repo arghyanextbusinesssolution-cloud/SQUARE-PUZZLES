@@ -1,147 +1,109 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
+import { LandingHero } from '@/components/landing/LandingHero';
+import { Features } from '@/components/home/Features';
+import { HowToPlay } from '@/components/home/HowToPlay';
+import { Stats } from '@/components/home/Stats';
+import { TestimonialCarousel } from '@/components/landing/TestimonialCarousel';
+import { CTA } from '@/components/home/CTA';
+import { Navbar } from '@/components/landing/Navbar';
+import { AnnouncementBanner } from '@/components/home/AnnouncementBanner';
+import { ScrollProgress } from '@/components/ui/ScrollProgress';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import Link from 'next/link';
-import { Button } from '@/components/ui';
-import { HiPuzzle, HiLightningBolt, HiChartBar, HiUserGroup } from 'react-icons/hi';
 
 export default function HomePage() {
   const { isAuthenticated, isLoading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      router.push('/dashboard');
-    }
-  }, [isAuthenticated, isLoading, router]);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-100">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100">
-      {/* Header */}
-      <header className="px-4 py-6 md:px-8">
-        <nav className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-lg">SP</span>
+    <div className="min-h-screen bg-[#0f1115] text-white selection:bg-emerald-500/30">
+      <AnnouncementBanner />
+      <Navbar />
+      <ScrollProgress />
+
+      <main>
+        {/* Playful Gaming Hero */}
+        <LandingHero />
+
+        {/* Core Sections */}
+        <div id="features" className="relative bg-[#0f1115]">
+          <Features />
+        </div>
+
+        <div id="how-to-play" className="relative bg-[#0f1115]">
+          <HowToPlay />
+        </div>
+
+        <Stats />
+
+        {/* Interactive Social Proof */}
+        <TestimonialCarousel />
+
+        {/* High-Energy CTA */}
+        <CTA />
+      </main>
+
+      {/* Branded Footer */}
+      <footer className="relative bg-gray-950 text-gray-400 py-16 border-t border-white/5">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+            <div className="col-span-1 md:col-span-1">
+              <Link href="/" className="flex items-center gap-2 mb-6">
+                <img src="/logo2.png" alt="WORD SQUARES" className="w-10 h-10 object-contain rounded-xl" />
+                <span className="font-bold text-xl text-white tracking-tight">WORD SQUARES</span>
+              </Link>
+              <p className="text-sm leading-relaxed text-gray-500">
+                The ultimate daily word challenge. Sharpen your mind, one square at a time.
+              </p>
             </div>
-            <span className="font-bold text-xl text-gray-900">Square Puzzles</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link href="/login">
-              <Button variant="ghost">Sign In</Button>
-            </Link>
-            <Link href="/register">
-              <Button>Get Started</Button>
-            </Link>
-          </div>
-        </nav>
-      </header>
 
-      {/* Hero Section */}
-      <section className="px-4 py-16 md:py-24 md:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Challenge Your Mind
-            <br />
-            <span className="text-emerald-600">Every Single Day</span>
-          </h1>
-          <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-            Join thousands of puzzle enthusiasts solving daily word puzzles. 
-            Train your brain, compete with friends, and track your progress.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/register">
-              <Button size="lg" className="w-full sm:w-auto px-8">
-                Start Playing Free
-              </Button>
-            </Link>
-            <Link href="/login">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto px-8">
-                I Have an Account
-              </Button>
-            </Link>
+            <div>
+              <h4 className="font-bold text-white mb-6 uppercase text-xs tracking-widest">Game</h4>
+              <ul className="space-y-4 text-sm">
+                <li><Link href="/play" className="hover:text-emerald-400 transition-colors">Daily Puzzle</Link></li>
+                <li><Link href="/archive" className="hover:text-emerald-400 transition-colors">Puzzle Archive</Link></li>
+                <li><Link href="/leaderboard" className="hover:text-emerald-400 transition-colors">Leaderboards</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-white mb-6 uppercase text-xs tracking-widest">Support</h4>
+              <ul className="space-y-4 text-sm">
+                <li><Link href="/how-to-play" className="hover:text-emerald-400 transition-colors">How to Play</Link></li>
+                <li><Link href="/faq" className="hover:text-emerald-400 transition-colors">FAQ</Link></li>
+                <li><Link href="/contact" className="hover:text-emerald-400 transition-colors">Contact Us</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-white mb-6 uppercase text-xs tracking-widest">Connect</h4>
+              <div className="flex gap-4">
+                <a href="#" className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center hover:bg-emerald-500/20 hover:text-emerald-400 transition-all border border-white/10">
+                  {/* Twitter Icon Proxy */}
+                  <span className="font-black">X</span>
+                </a>
+                <a href="#" className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center hover:bg-emerald-500/20 hover:text-emerald-400 transition-all border border-white/10">
+                  <span className="font-black">D</span>
+                </a>
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
 
-      {/* Features Grid */}
-      <section className="px-4 py-16 md:px-8 bg-white/50">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-12">
-            Why You&apos;ll Love Square Puzzles
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <FeatureCard
-              icon={<HiPuzzle className="w-8 h-8 text-emerald-600" />}
-              title="Daily Puzzles"
-              description="A fresh new puzzle every day to keep your mind sharp"
-            />
-            <FeatureCard
-              icon={<HiLightningBolt className="w-8 h-8 text-amber-500" />}
-              title="Smart Hints"
-              description="Get helpful hints when you're stuck without spoiling the fun"
-            />
-            <FeatureCard
-              icon={<HiChartBar className="w-8 h-8 text-blue-500" />}
-              title="Track Progress"
-              description="Build streaks and see your improvement over time"
-            />
-            <FeatureCard
-              icon={<HiUserGroup className="w-8 h-8 text-purple-500" />}
-              title="Share Results"
-              description="Challenge friends by sharing your completed puzzles"
-            />
+          <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium">
+            <p>&copy; {new Date().getFullYear()} WORD SQUARES. All rights reserved.</p>
+            <div className="flex gap-8">
+              <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+            </div>
           </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="px-4 py-16 md:py-24 md:px-8">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-            Ready to Start?
-          </h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Join our community of puzzle lovers and never miss a daily challenge.
-          </p>
-          <Link href="/register">
-            <Button size="lg" className="px-12">
-              Create Free Account
-            </Button>
-          </Link>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="px-4 py-8 md:px-8 border-t border-gray-200 bg-white/30">
-        <div className="max-w-7xl mx-auto text-center text-sm text-gray-600">
-          <p>&copy; {new Date().getFullYear()} Square Puzzles. All rights reserved.</p>
         </div>
       </footer>
-    </div>
-  );
-}
-
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
-  return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
-      <div className="w-14 h-14 bg-gray-50 rounded-xl flex items-center justify-center mb-4">
-        {icon}
-      </div>
-      <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
-      <p className="text-sm text-gray-600">{description}</p>
     </div>
   );
 }

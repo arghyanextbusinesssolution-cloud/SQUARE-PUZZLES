@@ -83,10 +83,10 @@ export default function Sidebar({ isOpen = true, onClose, isMobile = false }: Si
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-emerald-700">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <span className="text-emerald-800 font-bold text-lg">SP</span>
+              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center overflow-hidden">
+                <img src="/logo2.png" alt="WORD SQUARES" className="w-10 h-10 object-contain" />
               </div>
-              <span className="font-semibold text-lg">Square Puzzles</span>
+              <span className="font-semibold text-lg">WORD SQUARES</span>
             </Link>
             {isMobile && (
               <button
