@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import { Menu, X, Play } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
 
 export function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const { isAuthenticated, user } = useAuth();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -44,14 +46,24 @@ export function Navbar() {
 
                         <div className="h-6 w-px bg-white/10 mx-2"></div>
 
-                        <Link href="/login">
-                            <Button variant="ghost" className="text-gray-300 hover:text-white font-bold">Sign In</Button>
-                        </Link>
-                        <Link href="/register">
-                            <Button className="bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black px-6 rounded-xl shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-                                Get Started
-                            </Button>
-                        </Link>
+                        {isAuthenticated && user ? (
+                            <Link href="/dashboard">
+                                <Button className="bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black px-6 rounded-xl shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                                    Dashboard
+                                </Button>
+                            </Link>
+                        ) : (
+                            <>
+                                <Link href="/login">
+                                    <Button variant="ghost" className="text-gray-300 hover:text-white font-bold">Sign In</Button>
+                                </Link>
+                                <Link href="/register">
+                                    <Button className="bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black px-6 rounded-xl shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                                        Get Started
+                                    </Button>
+                                </Link>
+                            </>
+                        )}
                     </div>
 
                     {/* Mobile Toggle */}
@@ -78,14 +90,24 @@ export function Navbar() {
                             <Link href="#how-to-play" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-gray-300">How it Works</Link>
                             <Link href="/leaderboard" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-gray-300">Leaderboard</Link>
                             <div className="h-px w-full bg-white/5"></div>
-                            <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                                <Button variant="ghost" className="w-full text-white font-bold">Sign In</Button>
-                            </Link>
-                            <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
-                                <Button className="w-full bg-emerald-500 text-gray-950 font-black py-6 rounded-xl">
-                                    Get Started
-                                </Button>
-                            </Link>
+                            {isAuthenticated && user ? (
+                                <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                                    <Button className="w-full bg-emerald-500 text-gray-950 font-black py-6 rounded-xl">
+                                        Dashboard
+                                    </Button>
+                                </Link>
+                            ) : (
+                                <>
+                                    <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                                        <Button variant="ghost" className="w-full text-white font-bold">Sign In</Button>
+                                    </Link>
+                                    <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
+                                        <Button className="w-full bg-emerald-500 text-gray-950 font-black py-6 rounded-xl">
+                                            Get Started
+                                        </Button>
+                                    </Link>
+                                </>
+                            )}
                         </div>
                     </motion.div>
                 )}
