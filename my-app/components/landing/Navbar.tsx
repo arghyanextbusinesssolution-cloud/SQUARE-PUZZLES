@@ -47,7 +47,7 @@ export function Navbar() {
                         <div className="h-6 w-px bg-white/10 mx-2"></div>
 
                         {isAuthenticated && user ? (
-                            <Link href="/dashboard">
+                            <Link href="/admin">
                                 <Button className="bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black px-6 rounded-xl shadow-[0_0_15px_rgba(16,185,129,0.3)]">
                                     Dashboard
                                 </Button>
