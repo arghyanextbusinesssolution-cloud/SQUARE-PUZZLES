@@ -175,26 +175,11 @@ export default function HistoryPage() {
 
   const formatDateHeader = (dateString: string) => {
     const date = new Date(dateString + 'T00:00:00');
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    const dateToCheck = new Date(date);
-    dateToCheck.setHours(0, 0, 0, 0);
-
-    if (dateToCheck.getTime() === today.getTime()) {
-      return 'Today';
-    } else if (dateToCheck.getTime() === yesterday.getTime()) {
-      return 'Yesterday';
-    } else {
-      return date.toLocaleDateString('en-US', {
-        weekday: 'long',
-        month: 'short',
-        day: 'numeric',
-      });
-    }
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+    });
   };
 
   return (
@@ -223,8 +208,8 @@ export default function HistoryPage() {
           <button
             onClick={() => setStatusFilter('all')}
             className={`px-4 py-2 rounded-lg font-medium transition-all ${statusFilter === 'all'
-                ? 'bg-gray-900 text-white shadow-md'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'bg-gray-900 text-white shadow-md'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
           >
             All
@@ -232,8 +217,8 @@ export default function HistoryPage() {
           <button
             onClick={() => setStatusFilter('correct')}
             className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${statusFilter === 'correct'
-                ? 'bg-emerald-500 text-white shadow-md'
-                : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+              ? 'bg-emerald-500 text-white shadow-md'
+              : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
               }`}
           >
             <HiCheckCircle className="w-4 h-4" />
@@ -242,8 +227,8 @@ export default function HistoryPage() {
           <button
             onClick={() => setStatusFilter('incorrect')}
             className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${statusFilter === 'incorrect'
-                ? 'bg-red-500 text-white shadow-md'
-                : 'bg-red-50 text-red-700 hover:bg-red-100'
+              ? 'bg-red-500 text-white shadow-md'
+              : 'bg-red-50 text-red-700 hover:bg-red-100'
               }`}
           >
             <HiXCircle className="w-4 h-4" />
@@ -252,8 +237,8 @@ export default function HistoryPage() {
           <button
             onClick={() => setStatusFilter('incomplete')}
             className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${statusFilter === 'incomplete'
-                ? 'bg-amber-500 text-white shadow-md'
-                : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+              ? 'bg-amber-500 text-white shadow-md'
+              : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
               }`}
           >
             <HiClock className="w-4 h-4" />
@@ -295,10 +280,10 @@ export default function HistoryPage() {
                     <Card
                       key={item._id}
                       className={`hover:shadow-md transition-all border-l-4 ${item.status === 'correct'
-                          ? 'border-l-emerald-500'
-                          : item.status === 'incorrect'
-                            ? 'border-l-red-500'
-                            : 'border-l-amber-500'
+                        ? 'border-l-emerald-500'
+                        : item.status === 'incorrect'
+                          ? 'border-l-red-500'
+                          : 'border-l-amber-500'
                         } ${getStatusColor(item.status)}`}
                     >
                       <CardContent className="flex items-center justify-between p-4">
@@ -324,10 +309,10 @@ export default function HistoryPage() {
                           )}
                           <span
                             className={`text-sm font-semibold px-3 py-1 rounded-full ${item.status === 'correct'
-                                ? 'bg-emerald-100 text-emerald-700'
-                                : item.status === 'incorrect'
-                                  ? 'bg-red-100 text-red-700'
-                                  : 'bg-amber-100 text-amber-700'
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : item.status === 'incorrect'
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-amber-100 text-amber-700'
                               }`}
                           >
                             {getStatusText(item.status)}

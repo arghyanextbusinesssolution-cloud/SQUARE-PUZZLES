@@ -31,16 +31,6 @@ export default function PuzzleActions({
 }: PuzzleActionsProps) {
   const items = [
     {
-      label: 'Check Grid',
-      icon: <HiCheckCircle className="w-5 h-5 text-emerald-500" />,
-      onClick: onCheck,
-    },
-    {
-      label: hintUsed ? 'Hint Used' : 'Get Hint',
-      icon: <HiLightBulb className="w-5 h-5 text-amber-500" />,
-      onClick: onHint,
-    },
-    {
       label: "Share Result",
       icon: <HiClipboardCopy className="w-5 h-5 text-blue-500" />,
       onClick: onCopyYesterday,

@@ -37,7 +37,7 @@ export default function StreakPage() {
             api.getUserProfile() as Promise<{ success: boolean; stats: UserStats }>,
             api.getUserStreak() as Promise<{ success: boolean; streak: UserStreak }>,
           ]);
-          
+
           if (profileRes.success) setStats(profileRes.stats);
           if (streakRes.success) setStreak(streakRes.streak);
         } catch (error) {
@@ -47,15 +47,48 @@ export default function StreakPage() {
         }
       }
     };
-    
+
     loadData();
   }, [isAuthenticated]);
 
-  if (isLoading || !isAuthenticated) {
+  if (isLoading || !isAuthenticated || dataLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />
-      </div>
+      <MainLayout>
+        <div className="max-w-4xl mx-auto pb-12 animate-pulse mt-8">
+          {/* Header Skeleton */}
+          <div className="mb-8 space-y-3">
+            <div className="h-10 w-64 bg-gray-200 rounded-xl" />
+            <div className="h-5 w-48 bg-gray-200 rounded-lg" />
+          </div>
+          {/* Main Streak Stats Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <Card className="border-2 border-gray-100">
+              <CardContent className="h-64 bg-gray-50 flex items-center justify-center rounded-2xl">
+                <div />
+              </CardContent>
+            </Card>
+            <Card className="border-2 border-gray-100">
+              <CardContent className="h-64 bg-gray-50 flex items-center justify-center rounded-2xl">
+                <div />
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Gaming Stats Section Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div className="h-32 bg-gray-50 rounded-xl border border-gray-100" />
+            <div className="h-32 bg-gray-50 rounded-xl border border-gray-100" />
+            <div className="h-32 bg-gray-50 rounded-xl border border-gray-100" />
+          </div>
+
+          {/* Streak Details Skeleton */}
+          <Card className="mb-8 border-gray-100">
+            <CardContent className="h-80 bg-gray-50 rounded-2xl">
+              <div />
+            </CardContent>
+          </Card>
+        </div>
+      </MainLayout>
     );
   }
 
@@ -310,14 +343,13 @@ function MilestoneItem({
   isTotalBased?: boolean;
 }) {
   const progress = current ? Math.min((current / number) * 100, 100) : 0;
-  
+
   return (
     <div
-      className={`p-4 rounded-lg border-2 transition-all ${
-        unlocked
-          ? 'bg-gradient-to-br from-yellow-100 to-orange-100 border-yellow-400 shadow-md'
-          : 'bg-gray-100 border-gray-300'
-      }`}
+      className={`p-4 rounded-lg border-2 transition-all ${unlocked
+        ? 'bg-gradient-to-br from-yellow-100 to-orange-100 border-yellow-400 shadow-md'
+        : 'bg-gray-100 border-gray-300'
+        }`}
     >
       <div className="flex items-center gap-3">
         {unlocked ? (
@@ -329,8 +361,10 @@ function MilestoneItem({
         )}
         <div className="flex-1">
           <p className="text-sm font-bold text-gray-900">{label}</p>
-          <p className="text-xs text-gray-600">
-            {isTotalBased ? `${number} total puzzles` : `${number}-day streak`}
+          <p className={`text-xs ${unlocked ? 'text-yellow-700 font-semibold' : 'text-gray-600'}`}>
+            {unlocked
+              ? 'Got it!'
+              : isTotalBased ? `${number} total puzzles` : `${number}-day streak`}
           </p>
           {!unlocked && (
             <div className="mt-1 w-full bg-gray-300 rounded-full h-1.5">

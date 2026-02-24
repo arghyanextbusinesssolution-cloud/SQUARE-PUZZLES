@@ -123,7 +123,10 @@ export default function SettingsPage() {
                 icon={<HiBell className="w-5 h-5 text-gray-500" />}
                 label="Notifications"
                 description="Manage email notifications"
-                onClick={() => { }}
+                onClick={() => {
+                  setSuccessMessage('Notifications feature is coming soon!');
+                  setTimeout(() => setSuccessMessage(''), 3000);
+                }}
               />
             </div>
           </Card>
