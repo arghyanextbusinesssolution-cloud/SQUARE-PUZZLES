@@ -434,6 +434,78 @@ const getUsers = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Get user attempts for a specific puzzle
+ * @route   GET /api/admin/puzzle/:id/attempts
+ * @access  Admin
+ */
+const getPuzzleAttempts = async (req, res, next) => {
+  try {
+    const attempts = await PuzzleAttempt.find({ puzzleId: req.params.id })
+      .populate('userId', 'name email')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      attempts
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Delete user
+ * @route   DELETE /api/admin/user/:id
+ * @access  Admin
+ */
+const deleteUser = async (req, res, next) => {
+  try {
+    const userToDelete = await User.findById(req.params.id);
+
+    if (!userToDelete) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // Safety check: Prevent deleting admins
+    if (userToDelete.role === 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Cannot delete admin users'
+      });
+    }
+
+    // Delete associated data
+    await Promise.all([
+      PuzzleAttempt.deleteMany({ userId: userToDelete._id }),
+      Report.deleteMany({ userId: userToDelete._id })
+    ]);
+
+    // Delete user
+    await userToDelete.deleteOne();
+
+    // Log admin action
+    await AdminLog.logAction(
+      req.user._id,
+      'user_deleted',
+      'user',
+      req.params.id,
+      { email: userToDelete.email },
+      req
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'User deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const Settings = require('../models/Settings');
 
 // ... existing code ...
@@ -507,6 +579,8 @@ module.exports = {
   resolveReport,
   getDashboardStats,
   getUsers,
+  getPuzzleAttempts,
+  deleteUser,
   getSettings,
   updateSettings
 };

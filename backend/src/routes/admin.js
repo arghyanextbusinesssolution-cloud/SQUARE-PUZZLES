@@ -11,6 +11,8 @@ const {
   resolveReport,
   getDashboardStats,
   getUsers,
+  getPuzzleAttempts,
+  deleteUser,
   getSettings,
   updateSettings
 } = require('../controllers/adminController');
@@ -29,6 +31,7 @@ router.get('/stats', getDashboardStats);
 router.post('/puzzle', puzzleCreateRules, validate, createPuzzle);
 router.get('/puzzles', getAllPuzzles);
 router.get('/puzzle/:id', mongoIdRule('id'), validate, getPuzzle);
+router.get('/puzzle/:id/attempts', mongoIdRule('id'), validate, getPuzzleAttempts);
 router.put('/puzzle/:id', mongoIdRule('id'), validate, updatePuzzle);
 router.delete('/puzzle/:id', mongoIdRule('id'), validate, deletePuzzle);
 
@@ -38,6 +41,7 @@ router.put('/report/:id', mongoIdRule('id'), validate, resolveReport);
 
 // User management
 router.get('/users', getUsers);
+router.delete('/user/:id', mongoIdRule('id'), validate, deleteUser);
 
 // Settings management
 router.get('/settings', getSettings);

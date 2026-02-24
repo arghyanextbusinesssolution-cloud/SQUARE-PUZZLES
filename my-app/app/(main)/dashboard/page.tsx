@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { MainLayout } from '@/components/layout';
-import { Button } from '@/components/ui';
+import { Button, Modal } from '@/components/ui';
 import Link from 'next/link';
 import {
   HiPuzzle,
@@ -41,6 +41,7 @@ function DashboardCard({ icon, label, href, bgColor, iconBgColor }: DashboardCar
 export default function DashboardPage() {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const router = useRouter();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -145,7 +146,7 @@ export default function DashboardPage() {
 
         {/* Logout Button */}
         <Button
-          onClick={handleLogout}
+          onClick={() => setIsLogoutModalOpen(true)}
           variant="secondary"
           className="w-full py-4 bg-amber-100 hover:bg-amber-200 text-gray-700"
         >
@@ -153,6 +154,35 @@ export default function DashboardPage() {
           Logout
         </Button>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        title="Confirm Logout"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Are you sure you want to log out?
+          </p>
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => setIsLogoutModalOpen(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleLogout}
+              className="flex-1"
+            >
+              Logout
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </MainLayout>
   );
 }

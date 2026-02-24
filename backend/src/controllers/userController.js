@@ -87,13 +87,17 @@ const updateProfile = async (req, res, next) => {
  */
 const getStreak = async (req, res, next) => {
   try {
-    // Get all completed puzzles sorted by date
-    const completedAttempts = await PuzzleAttempt.find({
+    // Get all completed puzzles
+    const attempts = await PuzzleAttempt.find({
       userId: req.user._id,
       status: 'correct'
-    })
-      .populate('puzzleId', 'puzzleDate')
-      .sort({ 'puzzleId.puzzleDate': -1 });
+    }).populate('puzzleId', 'puzzleDate');
+
+    // Sort by puzzle date descending (newest first)
+    // We must sort in JS because we can't sort by a populated field in Mongoose
+    const completedAttempts = attempts
+      .filter(a => a.puzzleId && a.puzzleId.puzzleDate)
+      .sort((a, b) => new Date(b.puzzleId.puzzleDate) - new Date(a.puzzleId.puzzleDate));
 
     let currentStreak = 0;
     let maxStreak = 0;

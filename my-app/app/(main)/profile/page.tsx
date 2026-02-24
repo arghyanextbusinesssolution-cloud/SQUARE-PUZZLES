@@ -24,6 +24,7 @@ export default function ProfilePage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editName, setEditName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(true);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -34,22 +35,27 @@ export default function ProfilePage() {
   useEffect(() => {
     const loadData = async () => {
       if (isAuthenticated) {
+        setIsDataLoading(true);
         try {
           const [profileRes, streakRes] = await Promise.all([
             api.getUserProfile() as Promise<{ success: boolean; stats: UserStats }>,
             api.getUserStreak() as Promise<{ success: boolean; streak: UserStreak }>,
           ]);
-          
+
           if (profileRes.success) setStats(profileRes.stats);
           if (streakRes.success) setStreak(streakRes.streak);
         } catch (error) {
           console.error('Failed to load profile data:', error);
+        } finally {
+          setIsDataLoading(false);
         }
+      } else if (!isLoading) {
+        setIsDataLoading(false);
       }
     };
-    
+
     loadData();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isLoading]);
 
   const handleSaveProfile = async () => {
     setIsSaving(true);
@@ -64,11 +70,52 @@ export default function ProfilePage() {
     }
   };
 
-  if (isLoading || !isAuthenticated) {
+  if (isLoading || isDataLoading || !isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />
-      </div>
+      <MainLayout>
+        <div className="max-w-2xl mx-auto animate-pulse">
+          {/* Profile Header Skeleton */}
+          <Card className="mb-6">
+            <CardContent className="flex items-center gap-4">
+              <div className="w-20 h-20 rounded-full bg-gray-200" />
+              <div className="flex-1 space-y-2">
+                <div className="h-6 bg-gray-200 rounded w-1/3" />
+                <div className="h-4 bg-gray-200 rounded w-1/2" />
+                <div className="h-3 bg-gray-200 rounded w-1/4 mt-2" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Stats Grid Skeleton */}
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-gray-100 rounded-xl p-4 text-center h-[116px] flex flex-col items-center justify-center">
+                <div className="w-6 h-6 rounded-full bg-gray-200 mb-2" />
+                <div className="w-10 h-8 bg-gray-200 rounded mb-1" />
+                <div className="w-20 h-3 bg-gray-200 rounded mt-1" />
+              </div>
+            ))}
+          </div>
+
+          {/* Additional Stats Skeleton */}
+          <Card className="mb-6">
+            <CardContent>
+              <div className="h-5 bg-gray-200 rounded w-1/4 mb-6" />
+              <div className="space-y-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+                    <div className="h-4 bg-gray-200 rounded w-1/3" />
+                    <div className="h-4 bg-gray-200 rounded w-10" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Actions Skeleton */}
+          <div className="h-10 bg-gray-200 rounded w-full" />
+        </div>
+      </MainLayout>
     );
   }
 

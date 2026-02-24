@@ -54,23 +54,23 @@ export default function HistoryPage() {
             data: HistoryItem[];
             pagination: { pages: number };
           };
-          
+
           if (response.success) {
             // Filter to last 30 days only
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-            
+
             const filteredHistory = response.data.filter(item => {
               const itemDate = new Date(item.puzzleId.puzzleDate);
               return itemDate >= thirtyDaysAgo;
             });
-            
+
             // Sort by date descending (newest first)
-            filteredHistory.sort((a, b) => 
-              new Date(b.puzzleId.puzzleDate).getTime() - 
+            filteredHistory.sort((a, b) =>
+              new Date(b.puzzleId.puzzleDate).getTime() -
               new Date(a.puzzleId.puzzleDate).getTime()
             );
-            
+
             setHistory(filteredHistory);
           }
         } catch (error) {
@@ -80,28 +80,27 @@ export default function HistoryPage() {
         }
       }
     };
-    
+
     loadHistory();
   }, [isAuthenticated]);
 
   // Group history by date
   const groupedHistory = useMemo(() => {
     const groups: { [key: string]: HistoryItem[] } = {};
-    
+
     history.forEach(item => {
       const date = new Date(item.puzzleId.puzzleDate);
-      const key = date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      });
-      
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const key = `${year}-${month}-${day}`;
+
       if (!groups[key]) {
         groups[key] = [];
       }
       groups[key].push(item);
     });
-    
+
     return groups;
   }, [history]);
 
@@ -110,7 +109,7 @@ export default function HistoryPage() {
     if (statusFilter === 'all') {
       return groupedHistory;
     }
-    
+
     const filtered: { [key: string]: HistoryItem[] } = {};
     Object.entries(groupedHistory).forEach(([date, items]) => {
       const filteredItems = items.filter(item => item.status === statusFilter);
@@ -118,7 +117,7 @@ export default function HistoryPage() {
         filtered[date] = filteredItems;
       }
     });
-    
+
     return filtered;
   }, [groupedHistory, statusFilter]);
 
@@ -178,13 +177,13 @@ export default function HistoryPage() {
     const date = new Date(dateString + 'T00:00:00');
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    
+
     const dateToCheck = new Date(date);
     dateToCheck.setHours(0, 0, 0, 0);
-    
+
     if (dateToCheck.getTime() === today.getTime()) {
       return 'Today';
     } else if (dateToCheck.getTime() === yesterday.getTime()) {
@@ -223,43 +222,39 @@ export default function HistoryPage() {
         <div className="mb-6 flex flex-wrap gap-2">
           <button
             onClick={() => setStatusFilter('all')}
-            className={`px-4 py-2 rounded-lg font-medium transition-all ${
-              statusFilter === 'all'
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${statusFilter === 'all'
                 ? 'bg-gray-900 text-white shadow-md'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+              }`}
           >
             All
           </button>
           <button
             onClick={() => setStatusFilter('correct')}
-            className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
-              statusFilter === 'correct'
+            className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${statusFilter === 'correct'
                 ? 'bg-emerald-500 text-white shadow-md'
                 : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-            }`}
+              }`}
           >
             <HiCheckCircle className="w-4 h-4" />
             Completed
           </button>
           <button
             onClick={() => setStatusFilter('incorrect')}
-            className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
-              statusFilter === 'incorrect'
+            className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${statusFilter === 'incorrect'
                 ? 'bg-red-500 text-white shadow-md'
                 : 'bg-red-50 text-red-700 hover:bg-red-100'
-            }`}
+              }`}
           >
             <HiXCircle className="w-4 h-4" />
             Attempted
           </button>
           <button
             onClick={() => setStatusFilter('incomplete')}
-            className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
-              statusFilter === 'incomplete'
+            className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${statusFilter === 'incomplete'
                 ? 'bg-amber-500 text-white shadow-md'
                 : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
-            }`}
+              }`}
           >
             <HiClock className="w-4 h-4" />
             In Progress
@@ -299,13 +294,12 @@ export default function HistoryPage() {
                   {items.map((item) => (
                     <Card
                       key={item._id}
-                      className={`hover:shadow-md transition-all border-l-4 ${
-                        item.status === 'correct'
+                      className={`hover:shadow-md transition-all border-l-4 ${item.status === 'correct'
                           ? 'border-l-emerald-500'
                           : item.status === 'incorrect'
-                          ? 'border-l-red-500'
-                          : 'border-l-amber-500'
-                      } ${getStatusColor(item.status)}`}
+                            ? 'border-l-red-500'
+                            : 'border-l-amber-500'
+                        } ${getStatusColor(item.status)}`}
                     >
                       <CardContent className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-3 flex-1">
@@ -329,13 +323,12 @@ export default function HistoryPage() {
                             </div>
                           )}
                           <span
-                            className={`text-sm font-semibold px-3 py-1 rounded-full ${
-                              item.status === 'correct'
+                            className={`text-sm font-semibold px-3 py-1 rounded-full ${item.status === 'correct'
                                 ? 'bg-emerald-100 text-emerald-700'
                                 : item.status === 'incorrect'
-                                ? 'bg-red-100 text-red-700'
-                                : 'bg-amber-100 text-amber-700'
-                            }`}
+                                  ? 'bg-red-100 text-red-700'
+                                  : 'bg-amber-100 text-amber-700'
+                              }`}
                           >
                             {getStatusText(item.status)}
                           </span>

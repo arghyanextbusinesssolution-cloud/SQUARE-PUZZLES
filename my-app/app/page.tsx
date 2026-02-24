@@ -70,16 +70,16 @@ export default function HomePage() {
               <ul className="space-y-4 text-sm">
                 <li><Link href="/play" className="hover:text-emerald-400 transition-colors">Daily Puzzle</Link></li>
 
-                <li><Link href="/leaderboard" className="hover:text-emerald-400 transition-colors">Leaderboards</Link></li>
+                {/* <li><Link href="/leaderboard" className="hover:text-emerald-400 transition-colors">Leaderboards</Link></li> */}
               </ul>
             </div>
 
             <div>
               <h4 className="font-bold text-white mb-6 uppercase text-xs tracking-widest">Support</h4>
               <ul className="space-y-4 text-sm">
-                <li><Link href="/how-to-play" className="hover:text-emerald-400 transition-colors">How to Play</Link></li>
-                <li><Link href="/faq" className="hover:text-emerald-400 transition-colors">FAQ</Link></li>
-                <li><Link href="/contact" className="hover:text-emerald-400 transition-colors">Contact Us</Link></li>
+                <li><Link href="/#how-to-play" className="hover:text-emerald-400 transition-colors">How to Play</Link></li>
+                {/* <li><Link href="/faq" className="hover:text-emerald-400 transition-colors">FAQ</Link></li> */}
+                {/* <li><Link href="/contact" className="hover:text-emerald-400 transition-colors">Contact Us</Link></li> */}
               </ul>
             </div>
 

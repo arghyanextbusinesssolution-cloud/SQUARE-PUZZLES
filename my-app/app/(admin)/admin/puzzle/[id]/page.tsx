@@ -9,7 +9,19 @@ import { api } from '@/lib/api';
 import { PuzzleGrid } from '@/components/puzzle';
 import type { AdminPuzzle } from '@/types';
 import Link from 'next/link';
-import { HiArrowLeft, HiPencil } from 'react-icons/hi';
+import { HiArrowLeft, HiPencil, HiClock, HiCheckCircle } from 'react-icons/hi';
+
+interface Attempt {
+  _id: string;
+  userId: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  status: 'correct' | 'ongoing';
+  timeTakenSeconds: number;
+  createdAt: string;
+}
 
 export default function AdminPuzzleView() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -17,6 +29,7 @@ export default function AdminPuzzleView() {
   const params = useParams();
   const id = params?.id as string;
   const [puzzle, setPuzzle] = useState<AdminPuzzle | null>(null);
+  const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -36,10 +49,15 @@ export default function AdminPuzzleView() {
     const load = async () => {
       if (!id) return;
       try {
-        const res = await api.getAdminPuzzle(id) as { success: boolean; puzzle: AdminPuzzle };
-        if (res.success) setPuzzle(res.puzzle);
+        const [puzzleRes, attemptsRes] = await Promise.all([
+          api.getAdminPuzzle(id) as Promise<{ success: boolean; puzzle: AdminPuzzle }>,
+          api.getAdminPuzzleAttempts(id) as Promise<{ success: boolean; attempts: Attempt[] }>
+        ]);
+
+        if (puzzleRes.success) setPuzzle(puzzleRes.puzzle);
+        if (attemptsRes.success) setAttempts(attemptsRes.attempts);
       } catch (err) {
-        console.error('Failed to load puzzle', err);
+        console.error('Failed to load puzzle details', err);
       } finally {
         setIsLoading(false);
       }
@@ -164,6 +182,67 @@ export default function AdminPuzzleView() {
               </div>
             </div>
           </CardContent>
+        </Card>
+
+        {/* User Attempts Table */}
+        <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">User Attempts</h2>
+        <Card>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50/50">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">User</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Time Taken</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {attempts.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-8 text-center text-gray-500 text-sm">
+                      No users have attempted this puzzle yet.
+                    </td>
+                  </tr>
+                ) : (
+                  attempts.map((attempt) => (
+                    <tr key={attempt._id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="font-medium text-gray-900">{attempt.userId?.name || 'Unknown User'}</div>
+                        <div className="text-sm text-gray-500">{attempt.userId?.email || 'N/A'}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {attempt.status === 'correct' ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                            <HiCheckCircle className="w-3.5 h-3.5" />
+                            Completed
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                            Ongoing
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {attempt.status === 'correct' ? (
+                          <div className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
+                            <HiClock className="w-4 h-4 text-gray-400" />
+                            {Math.floor(attempt.timeTakenSeconds / 60)}m {attempt.timeTakenSeconds % 60}s
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(attempt.createdAt).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </Card>
       </div>
     </AdminLayout>

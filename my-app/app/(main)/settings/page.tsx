@@ -18,7 +18,7 @@ import {
 export default function SettingsPage() {
   const { isAuthenticated, isLoading, logout } = useAuth();
   const router = useRouter();
-  
+
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -26,6 +26,7 @@ export default function SettingsPage() {
   const [passwordError, setPasswordError] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -35,12 +36,12 @@ export default function SettingsPage() {
 
   const handleChangePassword = async () => {
     setPasswordError('');
-    
+
     if (newPassword !== confirmPassword) {
       setPasswordError('Passwords do not match');
       return;
     }
-    
+
     if (newPassword.length < 6) {
       setPasswordError('Password must be at least 6 characters');
       return;
@@ -122,7 +123,7 @@ export default function SettingsPage() {
                 icon={<HiBell className="w-5 h-5 text-gray-500" />}
                 label="Notifications"
                 description="Manage email notifications"
-                onClick={() => {}}
+                onClick={() => { }}
               />
             </div>
           </Card>
@@ -157,7 +158,7 @@ export default function SettingsPage() {
             <CardContent>
               <Button
                 variant="danger"
-                onClick={handleLogout}
+                onClick={() => setIsLogoutModalOpen(true)}
                 className="w-full"
               >
                 <HiLogout className="w-5 h-5 mr-2" />
@@ -185,7 +186,7 @@ export default function SettingsPage() {
                 {passwordError}
               </div>
             )}
-            
+
             <Input
               type="password"
               label="Current Password"
@@ -193,7 +194,7 @@ export default function SettingsPage() {
               onChange={(e) => setCurrentPassword(e.target.value)}
               placeholder="Enter current password"
             />
-            
+
             <Input
               type="password"
               label="New Password"
@@ -201,7 +202,7 @@ export default function SettingsPage() {
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="At least 6 characters"
             />
-            
+
             <Input
               type="password"
               label="Confirm New Password"
@@ -209,7 +210,7 @@ export default function SettingsPage() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm new password"
             />
-            
+
             <div className="flex gap-3">
               <Button
                 variant="secondary"
@@ -224,6 +225,35 @@ export default function SettingsPage() {
                 className="flex-1"
               >
                 Change Password
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Logout Confirmation Modal */}
+        <Modal
+          isOpen={isLogoutModalOpen}
+          onClose={() => setIsLogoutModalOpen(false)}
+          title="Confirm Logout"
+        >
+          <div className="space-y-4">
+            <p className="text-gray-600">
+              Are you sure you want to log out?
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => setIsLogoutModalOpen(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                onClick={handleLogout}
+                className="flex-1"
+              >
+                Logout
               </Button>
             </div>
           </div>

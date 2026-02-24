@@ -15,6 +15,7 @@ const adminLogSchema = new mongoose.Schema({
       'puzzle_deleted',
       'user_banned',
       'user_unbanned',
+      'user_deleted',
       'report_resolved',
       'settings_changed',
       'admin_login',

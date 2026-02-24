@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
@@ -16,6 +16,7 @@ import {
   HiUsers,
   HiX,
 } from 'react-icons/hi';
+import { Button, Modal } from '@/components/ui';
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -48,6 +49,7 @@ export default function Sidebar({ isOpen = true, onClose, isMobile = false }: Si
   const pathname = usePathname();
   const { user, logout, isAuthenticated } = useAuth();
   const isAdmin = user?.role === 'admin';
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -156,7 +158,7 @@ export default function Sidebar({ isOpen = true, onClose, isMobile = false }: Si
                 </div>
               </div>
               <button
-                onClick={handleLogout}
+                onClick={() => setIsLogoutModalOpen(true)}
                 className="flex items-center gap-2 w-full px-4 py-2 text-emerald-100 hover:bg-emerald-700 rounded-lg transition-colors"
               >
                 <HiLogout className="w-5 h-5" />
@@ -166,6 +168,35 @@ export default function Sidebar({ isOpen = true, onClose, isMobile = false }: Si
           )}
         </div>
       </aside>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        title="Confirm Logout"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Are you sure you want to log out?
+          </p>
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => setIsLogoutModalOpen(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleLogout}
+              className="flex-1"
+            >
+              Logout
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }

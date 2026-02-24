@@ -4,10 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { AdminLayout } from '@/components/admin';
-import { Card, CardContent, Button } from '@/components/ui';
+import { Card, CardContent, Button, Modal } from '@/components/ui';
 import { api } from '@/lib/api';
 import Link from 'next/link';
-import { HiArrowLeft, HiUser, HiMail, HiCalendar } from 'react-icons/hi';
+import { HiArrowLeft, HiUser, HiMail, HiCalendar, HiTrash } from 'react-icons/hi';
 
 interface UserData {
   _id: string;
@@ -26,6 +26,11 @@ export default function UsersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [deleteModal, setDeleteModal] = useState<{ open: boolean; userId: string | null }>({
+    open: false,
+    userId: null,
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!authLoading) {
@@ -64,6 +69,23 @@ export default function UsersPage() {
 
     loadUsers();
   }, [isAuthenticated, user, page]);
+
+  const handleDelete = async () => {
+    if (!deleteModal.userId) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await api.deleteUser(deleteModal.userId) as { success: boolean };
+      if (response.success) {
+        setUsers(users.filter((u) => u._id !== deleteModal.userId));
+        setDeleteModal({ open: false, userId: null });
+      }
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (authLoading || isLoading) {
     return (
@@ -114,6 +136,7 @@ export default function UsersPage() {
                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Joined Date</th>
                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Last Login</th>
                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -162,12 +185,22 @@ export default function UsersPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${userData.isActive
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-red-100 text-red-700'
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-red-100 text-red-700'
                             }`}
                         >
                           {userData.isActive ? 'Active' : 'Inactive'}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setDeleteModal({ open: true, userId: userData._id })}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <HiTrash className="w-5 h-5" />
+                        </Button>
                       </td>
                     </tr>
                   ))}
@@ -205,6 +238,37 @@ export default function UsersPage() {
             )}
           </div>
         )}
+
+        {/* Delete Modal */}
+        <Modal
+          isOpen={deleteModal.open}
+          onClose={() => setDeleteModal({ open: false, userId: null })}
+          title="Delete User"
+        >
+          <div className="space-y-4">
+            <p className="text-gray-600">
+              Are you sure you want to permanently delete this user? This action cannot be
+              undone and will also delete all of their puzzle attempts and reports.
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => setDeleteModal({ open: false, userId: null })}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                onClick={handleDelete}
+                isLoading={isDeleting}
+                className="flex-1"
+              >
+                Delete User
+              </Button>
+            </div>
+          </div>
+        </Modal>
       </div>
     </AdminLayout>
   );

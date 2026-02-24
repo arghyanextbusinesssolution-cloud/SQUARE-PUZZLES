@@ -183,6 +183,12 @@ class ApiClient {
     return this.request('/user/profile');
   }
 
+  async deleteUser(id: string) {
+    return this.request(`/admin/user/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   async getUserStreak() {
     return this.request('/user/streak');
   }
@@ -200,6 +206,10 @@ class ApiClient {
 
   async getAdminPuzzle(id: string) {
     return this.request(`/admin/puzzle/${id}`);
+  }
+
+  async getAdminPuzzleAttempts(id: string) {
+    return this.request(`/admin/puzzle/${id}/attempts`);
   }
 
   async createPuzzle(data: {
