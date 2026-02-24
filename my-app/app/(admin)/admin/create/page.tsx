@@ -27,6 +27,8 @@ interface CellPosition {
 export default function CreatePuzzlePage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const urlDate = searchParams?.get('date');
 
   const [puzzleDate, setPuzzleDate] = useState('');
   const [gridSize, setGridSize] = useState(4);
@@ -104,13 +106,29 @@ export default function CreatePuzzlePage() {
   // Load from localStorage on mount (restore gridSize first so grid isn't overridden)
   useEffect(() => {
     if (typeof window !== 'undefined' && isAuthenticated) {
+      if (urlDate) {
+        const selected = new Date(urlDate);
+        selected.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (selected < today) {
+          setError('Cannot create puzzles for past dates. Setting date to today instead.');
+          setPuzzleDate(new Date().toISOString().split('T')[0]);
+        } else {
+          setPuzzleDate(urlDate);
+        }
+      }
+
       const saved = localStorage.getItem('puzzleFormData');
       if (saved) {
         try {
           const data = JSON.parse(saved);
           // Restore grid size first
           if (data.gridSize) setGridSize(data.gridSize);
-          setPuzzleDate(data.puzzleDate || new Date().toISOString().split('T')[0]);
+          if (!urlDate || (new Date(urlDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0))) {
+            setPuzzleDate(data.puzzleDate || new Date().toISOString().split('T')[0]);
+          }
           setWords(data.words || [{ word: '', startRow: 0, startCol: 0, direction: 'horizontal' }]);
           setGrid(data.grid || Array((data.gridSize || 4)).fill(null).map(() => Array((data.gridSize || 4)).fill('')));
           setVisibleCells(data.visibleCells || []);
@@ -120,15 +138,17 @@ export default function CreatePuzzlePage() {
           setDownClues(data.downClues || []);
         } catch (e) {
           console.error('Failed to load puzzle data:', e);
-          setPuzzleDate(new Date().toISOString().split('T')[0]);
+          if (!urlDate || (new Date(urlDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0))) {
+            setPuzzleDate(new Date().toISOString().split('T')[0]);
+          }
         }
-      } else {
+      } else if (!urlDate || (new Date(urlDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0))) {
         // Set default date to today if no saved data
         setPuzzleDate(new Date().toISOString().split('T')[0]);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
+  }, [isAuthenticated, urlDate]);
 
   // Save puzzle data to localStorage (include gridSize)
   useEffect(() => {
@@ -160,6 +180,38 @@ export default function CreatePuzzlePage() {
       return Array(gridSize).fill(null).map(() => Array(gridSize).fill(''));
     });
     // If not editing by grid, keep preview in sync from words
+  }, [gridSize]);
+
+  useEffect(() => {
+    // Sync across clues count with grid size
+    setAcrossClues(prev => {
+      const current = [...prev];
+      if (current.length < gridSize) {
+        // Add clues
+        for (let i = current.length; i < gridSize; i++) {
+          current.push({ number: i + 1, text: '' });
+        }
+      } else if (current.length > gridSize) {
+        // Remove extra clues
+        return current.slice(0, gridSize);
+      }
+      return current;
+    });
+
+    // Sync down clues count with grid size
+    setDownClues(prev => {
+      const current = [...prev];
+      if (current.length < gridSize) {
+        // Add clues
+        for (let i = current.length; i < gridSize; i++) {
+          current.push({ number: i + 1, text: '' });
+        }
+      } else if (current.length > gridSize) {
+        // Remove extra clues
+        return current.slice(0, gridSize);
+      }
+      return current;
+    });
   }, [gridSize]);
 
   useEffect(() => {
@@ -711,23 +763,13 @@ export default function CreatePuzzlePage() {
 
                       <div className="space-y-4">
                         {acrossClues.map((clue, idx) => (
-                          <div key={`across-${idx}`} className="flex gap-4 items-start p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:bg-emerald-50/30 transition-colors">
-                            <div className="w-20">
-                              <label className="text-[10px] font-black text-gray-400 block mb-1 uppercase">No.</label>
-                              <input
-                                type="number"
-                                min="1"
-                                value={clue.number}
-                                onChange={(e) => {
-                                  const updated = [...acrossClues];
-                                  updated[idx].number = Number(e.target.value);
-                                  setAcrossClues(updated);
-                                }}
-                                className="form-input !p-2 text-center font-bold"
-                              />
+                          <div key={`across-${idx}`} className="flex gap-4 items-center p-5 bg-white/50 rounded-2xl border border-gray-100 hover:bg-emerald-50/30 transition-all shadow-sm">
+                            <div className="flex flex-col items-center justify-center bg-emerald-100/50 rounded-xl w-14 h-14 border border-emerald-200/50">
+                              <span className="text-[10px] font-black text-emerald-800 uppercase tracking-tighter leading-none mb-1">Row</span>
+                              <span className="text-xl font-black text-emerald-900 leading-none">{idx + 1}</span>
                             </div>
                             <div className="flex-1">
-                              <label className="text-[10px] font-black text-gray-400 block mb-1 uppercase">Clue Description</label>
+                              <label className="text-[10px] font-black text-gray-400 block mb-1 uppercase tracking-widest pl-1">Clue Description</label>
                               <input
                                 type="text"
                                 value={clue.text}
@@ -736,28 +778,12 @@ export default function CreatePuzzlePage() {
                                   updated[idx].text = e.target.value.slice(0, 250);
                                   setAcrossClues(updated);
                                 }}
-                                placeholder="Enter clue text..."
-                                className="form-input !py-2"
+                                placeholder={`Enter hint for row ${idx + 1}...`}
+                                className="form-input !py-3 bg-white/80 border-gray-200 focus:bg-white"
                               />
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => setAcrossClues(acrossClues.filter((_, i) => i !== idx))}
-                              className="mt-6 text-red-300 hover:text-red-500 p-2"
-                            >
-                              <HiTrash className="w-5 h-5" />
-                            </button>
                           </div>
                         ))}
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="w-full py-3 rounded-2xl border-dashed hover:border-emerald-500 hover:bg-emerald-50/50"
-                          onClick={() => setAcrossClues([...acrossClues, { number: (Math.max(...acrossClues.map(c => c.number), 0)) + 1, text: '' }])}
-                        >
-                          <HiPlus className="w-4 h-4 mr-2" /> Add Across Clue
-                        </Button>
                       </div>
 
                       <div className="mt-10 pt-6 border-t border-gray-100 flex justify-end">
@@ -784,23 +810,13 @@ export default function CreatePuzzlePage() {
 
                       <div className="space-y-4">
                         {downClues.map((clue, idx) => (
-                          <div key={`down-${idx}`} className="flex gap-4 items-start p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:bg-blue-50/30 transition-colors">
-                            <div className="w-20">
-                              <label className="text-[10px] font-black text-gray-400 block mb-1 uppercase">No.</label>
-                              <input
-                                type="number"
-                                min="1"
-                                value={clue.number}
-                                onChange={(e) => {
-                                  const updated = [...downClues];
-                                  updated[idx].number = Number(e.target.value);
-                                  setDownClues(updated);
-                                }}
-                                className="form-input !p-2 text-center font-bold"
-                              />
+                          <div key={`down-${idx}`} className="flex gap-4 items-center p-5 bg-white/50 rounded-2xl border border-gray-100 hover:bg-blue-50/30 transition-all shadow-sm">
+                            <div className="flex flex-col items-center justify-center bg-blue-100/50 rounded-xl w-14 h-14 border border-blue-200/50">
+                              <span className="text-[10px] font-black text-blue-800 uppercase tracking-tighter leading-none mb-1">Col</span>
+                              <span className="text-xl font-black text-blue-900 leading-none">{idx + 1}</span>
                             </div>
                             <div className="flex-1">
-                              <label className="text-[10px] font-black text-gray-400 block mb-1 uppercase">Clue Description</label>
+                              <label className="text-[10px] font-black text-gray-400 block mb-1 uppercase tracking-widest pl-1">Clue Description</label>
                               <input
                                 type="text"
                                 value={clue.text}
@@ -809,28 +825,12 @@ export default function CreatePuzzlePage() {
                                   updated[idx].text = e.target.value.slice(0, 250);
                                   setDownClues(updated);
                                 }}
-                                placeholder="Enter clue text..."
-                                className="form-input !py-2"
+                                placeholder={`Enter hint for column ${idx + 1}...`}
+                                className="form-input !py-3 bg-white/80 border-gray-200 focus:bg-white"
                               />
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => setDownClues(downClues.filter((_, i) => i !== idx))}
-                              className="mt-6 text-red-300 hover:text-red-500 p-2"
-                            >
-                              <HiTrash className="w-5 h-5" />
-                            </button>
                           </div>
                         ))}
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="w-full py-3 rounded-2xl border-dashed hover:border-blue-500 hover:bg-blue-50/50"
-                          onClick={() => setDownClues([...downClues, { number: (Math.max(...downClues.map(c => c.number), 0)) + 1, text: '' }])}
-                        >
-                          <HiPlus className="w-4 h-4 mr-2" /> Add Down Clue
-                        </Button>
                       </div>
                     </CardContent>
                   </Card>

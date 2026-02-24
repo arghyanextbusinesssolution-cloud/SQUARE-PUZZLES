@@ -6,7 +6,7 @@ import { Grid, Hand, Lightbulb, Trophy } from 'lucide-react';
 const steps = [
     {
         id: 1,
-        title: "Start the Grid",
+        title: "4x4 , set of clues",
         description: "You're given a 4x4 empty board and a set of words.",
         icon: <Grid className="w-6 h-6" />,
         color: "bg-blue-500",
@@ -14,7 +14,7 @@ const steps = [
     },
     {
         id: 2,
-        title: "Place Words",
+        title: "Input Letters",
         description: "Drag and drop words or type to fill the rows and columns.",
         icon: <Hand className="w-6 h-6" />,
         color: "bg-purple-500",
@@ -22,7 +22,7 @@ const steps = [
     },
     {
         id: 3,
-        title: "Solve Clues",
+        title: "Solve Clues, Get Hints",
         description: "Use intersecting letters to figure out the tricky ones.",
         icon: <Lightbulb className="w-6 h-6" />,
         color: "bg-amber-500",
@@ -30,7 +30,7 @@ const steps = [
     },
     {
         id: 4,
-        title: "Win & Streak",
+        title: "Win, Streak & Share",
         description: "Complete the grid to climb the leaderboard and keep your streak!",
         icon: <Trophy className="w-6 h-6" />,
         color: "bg-emerald-500",

@@ -40,7 +40,7 @@ const adminNavItems: NavItem[] = [
   { label: 'Users', href: '/admin/users', icon: <HiUsers className="w-5 h-5" /> },
   { label: 'Reports / Analytics', href: '/admin/analytics', icon: <HiChartBar className="w-5 h-5" /> },
   { label: 'Feedback / Issues', href: '/admin/reports', icon: <HiExclamationCircle className="w-5 h-5" /> },
-  { label: 'Announcements', href: '/admin/announcements', icon: <HiSpeakerphone className="w-5 h-5" /> },
+  // { label: 'Announcements', href: '/admin/announcements', icon: <HiSpeakerphone className="w-5 h-5" /> },
   { label: 'Settings', href: '/admin/settings', icon: <HiCog className="w-5 h-5" /> },
   { label: 'Activity Logs', href: '/admin/activity', icon: <HiDocumentText className="w-5 h-5" /> },
   { label: 'User View', href: '/admin/user-view', icon: <HiEye className="w-5 h-5" /> },
@@ -104,7 +104,7 @@ export default function AdminSidebar({ isOpen = true, onClose, isMobile = false 
           <nav className="flex-1 overflow-y-auto py-4">
             <ul className="space-y-1 px-3">
               {adminNavItems.map((item) => {
-                const isActive = pathname === item.href || 
+                const isActive = pathname === item.href ||
                   (item.href !== '/admin' && pathname?.startsWith(item.href));
                 return (
                   <li key={item.href}>

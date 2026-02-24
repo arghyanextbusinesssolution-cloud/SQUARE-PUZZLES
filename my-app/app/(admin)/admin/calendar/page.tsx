@@ -4,10 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { AdminLayout } from '@/components/admin';
-import { Card, CardContent, Button } from '@/components/ui';
+import { Card, CardContent, Button, Modal } from '@/components/ui';
 import { api } from '@/lib/api';
 import Link from 'next/link';
-import { HiArrowLeft, HiCalendar, HiCheckCircle, HiXCircle } from 'react-icons/hi';
+import { HiArrowLeft, HiCalendar, HiCheckCircle, HiXCircle, HiPlus } from 'react-icons/hi';
 import type { AdminPuzzle } from '@/types';
 
 export default function PuzzleCalendarPage() {
@@ -17,6 +17,8 @@ export default function PuzzleCalendarPage() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [isNoPuzzleModalOpen, setIsNoPuzzleModalOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading) {
@@ -75,6 +77,16 @@ export default function PuzzleCalendarPage() {
       const puzzleDate = getLocalDateString(new Date(p.puzzleDate));
       return puzzleDate === dateStr;
     });
+  };
+
+  const handleDateClick = (date: Date) => {
+    const puzzle = getPuzzleForDate(date);
+    if (puzzle) {
+      router.push(`/admin/puzzle/${puzzle._id}`);
+    } else {
+      setSelectedDate(date);
+      setIsNoPuzzleModalOpen(true);
+    }
   };
 
   const daysInMonth = getDaysInMonth(selectedMonth, selectedYear);
@@ -176,16 +188,20 @@ export default function PuzzleCalendarPage() {
                 return (
                   <div
                     key={day}
+                    onClick={() => handleDateClick(date)}
                     className={`
-                      aspect-square border-2 rounded-lg p-2 flex flex-col items-center justify-center
+                      aspect-square border-2 rounded-lg p-2 flex flex-col items-center justify-center transition-all
                       ${isToday ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'}
-                      ${puzzle ? 'bg-emerald-100 cursor-pointer hover:bg-emerald-200' : 'bg-gray-50'}
+                      ${puzzle ? 'bg-emerald-100 cursor-pointer hover:bg-emerald-200 border-emerald-200' : 'bg-white cursor-pointer hover:bg-gray-50 border-dashed'}
                       ${isPast ? 'opacity-60' : ''}
                     `}
                   >
                     <span className={`text-sm font-medium ${isToday ? 'text-emerald-700' : 'text-gray-700'}`}>
                       {day}
                     </span>
+                    {isToday && (
+                      <span className="text-[10px] font-bold text-emerald-600 uppercase">Today</span>
+                    )}
                     {puzzle && (
                       <div className="mt-1">
                         {puzzle.isActive ? (
@@ -203,24 +219,80 @@ export default function PuzzleCalendarPage() {
         </Card>
 
         {/* Legend */}
-        <div className="flex items-center gap-6 text-sm text-gray-600">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-emerald-100 border-2 border-emerald-500 rounded" />
-            <span>Today</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-emerald-100 border-2 border-gray-200 rounded" />
-            <span>Has Puzzle</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <HiCheckCircle className="w-4 h-4 text-green-500" />
-            <span>Active</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <HiXCircle className="w-4 h-4 text-gray-400" />
-            <span>Inactive</span>
+        <div className="bg-white p-4 rounded-lg border border-gray-200 mb-6">
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">Calendar Key</h3>
+          <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-emerald-50 border-2 border-emerald-500 rounded" />
+              <span>Today</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-emerald-100 border-2 border-emerald-200 rounded" />
+              <span>Checked (Has Puzzle)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-white border-2 border-gray-200 border-dashed rounded" />
+              <span>Unchecked (No Puzzle)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <HiCheckCircle className="w-4 h-4 text-green-500" />
+              <span>Active</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <HiXCircle className="w-4 h-4 text-gray-400" />
+              <span>Inactive</span>
+            </div>
           </div>
         </div>
+
+        {/* No Puzzle Modal */}
+        <Modal
+          isOpen={isNoPuzzleModalOpen}
+          onClose={() => setIsNoPuzzleModalOpen(false)}
+          title="No Puzzle for this Date"
+        >
+          <div className="py-2">
+            {selectedDate && (new Date(selectedDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)) ? (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                <p className="text-amber-700 text-sm font-medium">
+                  Creating puzzles for past dates is not allowed. Please select today or a future date.
+                </p>
+              </div>
+            ) : (
+              <p className="text-gray-600 mb-6">
+                There is no puzzle scheduled for {selectedDate ? selectedDate.toLocaleDateString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric'
+                }) : ''}. Would you like to create one?
+              </p>
+            )}
+
+            <div className="flex flex-col gap-3">
+              {selectedDate && (new Date(selectedDate).setHours(0, 0, 0, 0) >= new Date().setHours(0, 0, 0, 0)) && (
+                <Button
+                  className="w-full"
+                  onClick={() => {
+                    if (selectedDate) {
+                      const dateStr = getLocalDateString(selectedDate);
+                      router.push(`/admin/create?date=${dateStr}`);
+                    }
+                  }}
+                >
+                  <HiPlus className="w-5 h-5 mr-2" />
+                  Create Puzzle for this Date
+                </Button>
+              )}
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => setIsNoPuzzleModalOpen(false)}
+              >
+                {selectedDate && (new Date(selectedDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)) ? 'Ok, I understand' : 'Close'}
+              </Button>
+            </div>
+          </div>
+        </Modal>
       </div>
     </AdminLayout>
   );

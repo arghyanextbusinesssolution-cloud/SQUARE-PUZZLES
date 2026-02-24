@@ -15,7 +15,11 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [serverError, setServerError] = useState('');
+  const [nameError, setNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const { register } = useAuth();
@@ -23,18 +27,42 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // ... existing submit logic
-    setError('');
+    // clear previous field errors
+    setNameError('');
+    setEmailError('');
+    setPasswordError('');
+    setConfirmPasswordError('');
+    setServerError('');
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
+    let hasError = false;
+    if (!name) {
+      setNameError('Please add your name or alias.');
+      hasError = true;
+    }
+    if (!email) {
+      setEmailError('Please add your email address.');
+      hasError = true;
+    }
+    if (!password) {
+      setPasswordError('Please add a password.');
+      hasError = true;
+    }
+    if (!confirmPassword) {
+      setConfirmPasswordError('Please confirm your password.');
+      hasError = true;
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
+    if (password && password.length > 0 && password.length < 8) {
+      setPasswordError('Password must be at least 8 characters.');
+      hasError = true;
     }
+
+    if (password && confirmPassword && password !== confirmPassword) {
+      setConfirmPasswordError('Passwords do not match — enter the same password.');
+      hasError = true;
+    }
+
+    if (hasError) return;
 
     setIsLoading(true);
 
@@ -50,7 +78,7 @@ export default function RegisterPage() {
 
       router.push('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
+      setServerError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
       setIsLoading(false);
     }
@@ -65,12 +93,12 @@ export default function RegisterPage() {
 
       <div className="w-full max-w-md relative z-10">
         {/* Logo & Header */}
-        <div className="text-center mb-10">
-          <Link href="/" className="inline-flex items-center justify-center w-20 h-20 mb-6 bg-white/5 border border-white/10 rounded-2xl p-3 backdrop-blur-md hover:scale-110 transition-all group">
+        <div className="text-center mb-12">
+          <Link href="/" className="inline-flex items-center justify-center w-36 h-36 sm:w-48 sm:h-48 mb-6 bg-white/5 border border-white/10 rounded-2xl p-3 backdrop-blur-md hover:scale-110 transition-all group">
             <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
             <img src="/logo2.png" alt="WORD SQUARES" className="relative w-full h-full object-contain" />
           </Link>
-          <h1 className="text-3xl font-black text-white tracking-tight mb-2">Create Account</h1>
+          <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight mb-3">Create Account</h1>
           <p className="text-gray-400 font-medium tracking-wide">Join the challenge and start solving</p>
         </div>
 
@@ -79,19 +107,21 @@ export default function RegisterPage() {
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
 
           <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
-            {error && (
+            {/* per-field inline validation messages will appear below inputs */}
+
+            {serverError && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl text-sm font-bold flex items-center gap-2"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
-                {error}
+                {serverError}
               </motion.div>
             )}
 
             <div className="space-y-2">
-              <label className="form-label">Name (optional)</label>
+              <label className="form-label">Name</label>
               <div className="relative group/input">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within/input:text-emerald-400 transition-colors pointer-events-none">
                   <UserIcon className="h-5 w-5" />
@@ -99,11 +129,17 @@ export default function RegisterPage() {
                 <input
                   type="text"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="form-input !pl-14"
-                  placeholder="Your gaming alias"
+                  onChange={(e) => {
+                      setName(e.target.value);
+                      setNameError('');
+                      setServerError('');
+                    }}
+                  className={`form-input !pl-14 ${nameError ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                  placeholder="Your name or permanent alias"
+                  required
                 />
               </div>
+              {nameError && <div className="text-red-400 text-sm font-medium mt-1">{nameError}</div>}
             </div>
 
             <div className="space-y-2">
@@ -115,12 +151,17 @@ export default function RegisterPage() {
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="form-input !pl-14"
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setEmailError('');
+                    setServerError('');
+                  }}
+                  className={`form-input !pl-14 ${emailError ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                   placeholder="you@example.com"
                   required
                 />
               </div>
+              {emailError && <div className="text-red-400 text-sm font-medium mt-1">{emailError}</div>}
             </div>
 
             <div className="space-y-2">
@@ -132,11 +173,15 @@ export default function RegisterPage() {
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="form-input !pl-14 !pr-14"
-                  placeholder="At least 6 characters"
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setPasswordError('');
+                    setServerError('');
+                  }}
+                  className={`form-input !pl-14 !pr-14 ${passwordError ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                  placeholder="At least 8 characters"
                   required
-                  minLength={6}
+                  minLength={8}
                 />
                 <button
                   type="button"
@@ -146,10 +191,12 @@ export default function RegisterPage() {
                   {showPassword ? <HiEyeOff className="h-5 w-5" /> : <HiEye className="h-5 w-5" />}
                 </button>
               </div>
+              {passwordError && <div className="text-red-400 text-sm font-medium mt-1">{passwordError}</div>}
             </div>
 
             <div className="space-y-2">
               <label className="form-label">Confirm Password</label>
+              {confirmPasswordError && <div className="text-red-400 text-sm font-medium">{confirmPasswordError}</div>}
               <div className="relative group/input">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within/input:text-emerald-400 transition-colors pointer-events-none">
                   <LockIcon className="h-5 w-5" />
@@ -157,8 +204,12 @@ export default function RegisterPage() {
                 <input
                   type={showConfirmPassword ? "text" : "password"}
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="form-input !pl-14 !pr-14"
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    setConfirmPasswordError('');
+                    setServerError('');
+                  }}
+                  className={`form-input !pl-14 !pr-14 ${confirmPasswordError ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                   placeholder="Verify your password"
                   required
                 />
@@ -175,6 +226,7 @@ export default function RegisterPage() {
             <Button
               type="submit"
               isLoading={isLoading}
+              disabled={!(name && email && password && confirmPassword && password.length >= 8 && password === confirmPassword)}
               className="w-full h-14 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-gray-950 font-black text-lg rounded-2xl shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] transition-all transform active:scale-[0.98] mt-4"
             >
               Create Account

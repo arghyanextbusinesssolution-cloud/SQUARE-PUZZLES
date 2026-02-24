@@ -54,7 +54,7 @@ export default function AdminDashboardPage() {
             stats: DashboardStats;
             recentActivity: ActivityLog[];
           };
-          
+
           if (response.success) {
             setStats(response.stats);
             setRecentActivity(response.recentActivity || []);
@@ -104,28 +104,32 @@ export default function AdminDashboardPage() {
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <StatCard
+            href="/admin/users"
             icon={<HiUsers className="w-6 h-6 text-blue-500" />}
             value={stats?.totalUsers || 0}
             label="Total Users"
             bgColor="bg-blue-50"
           />
           <StatCard
+            href="/admin/puzzles"
             icon={<HiPuzzle className="w-6 h-6 text-emerald-500" />}
             value={stats?.totalPuzzles || 0}
             label="Total Puzzles"
             bgColor="bg-emerald-50"
           />
           <StatCard
+            href="/admin/reports"
             icon={<HiExclamationCircle className="w-6 h-6 text-amber-500" />}
             value={stats?.pendingReports || 0}
             label="Pending Reports"
             bgColor="bg-amber-50"
           />
           <StatCard
-            icon={<HiChartBar className="w-6 h-6 text-purple-500" />}
-            value={stats?.todayAttempts || 0}
-            label="Today's Attempts"
-            bgColor="bg-purple-50"
+            href="/admin/calendar"
+            icon={<HiPuzzle className={`w-6 h-6 ${stats?.nextPuzzleScheduled ? 'text-emerald-500' : 'text-rose-500'}`} />}
+            value={stats?.nextPuzzleScheduled ? 'Scheduled' : 'Missing'}
+            label="Tomorrow's Puzzle"
+            bgColor={stats?.nextPuzzleScheduled ? 'bg-emerald-50' : 'bg-rose-50'}
           />
         </div>
 
@@ -191,14 +195,16 @@ function StatCard({
   value,
   label,
   bgColor,
+  href,
 }: {
   icon: React.ReactNode;
-  value: number;
+  value: number | string;
   label: string;
   bgColor: string;
+  href?: string;
 }) {
-  return (
-    <div className={`${bgColor} rounded-xl p-4`}>
+  const content = (
+    <div className={`${bgColor} rounded-xl p-4 h-full ${href ? 'hover:shadow-md transition-shadow cursor-pointer' : ''}`}>
       <div className="flex items-center gap-3 mb-2">
         {icon}
       </div>
@@ -206,6 +212,12 @@ function StatCard({
       <p className="text-sm text-gray-600">{label}</p>
     </div>
   );
+
+  if (href) {
+    return <Link href={href}>{content}</Link>;
+  }
+
+  return content;
 }
 
 function QuickActionCard({

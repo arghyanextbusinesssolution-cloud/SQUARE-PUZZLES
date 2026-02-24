@@ -42,7 +42,6 @@ export function Navbar() {
                     <div className="hidden md:flex items-center gap-8">
                         <Link href="#features" className="text-sm font-bold text-gray-400 hover:text-emerald-400 transition-colors">Features</Link>
                         <Link href="#how-to-play" className="text-sm font-bold text-gray-400 hover:text-emerald-400 transition-colors">How it Works</Link>
-                        <Link href="/leaderboard" className="text-sm font-bold text-gray-400 hover:text-emerald-400 transition-colors">Leaderboard</Link>
 
                         <div className="h-6 w-px bg-white/10 mx-2"></div>
 
@@ -54,9 +53,7 @@ export function Navbar() {
                             </Link>
                         ) : (
                             <>
-                                <Link href="/login">
-                                    <Button variant="ghost" className="text-gray-300 hover:text-white font-bold">Sign In</Button>
-                                </Link>
+                                <Link href="/login" className="text-sm font-bold text-gray-400 hover:text-emerald-400 transition-colors">Sign In</Link>
                                 <Link href="/register">
                                     <Button className="bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black px-6 rounded-xl shadow-[0_0_15px_rgba(16,185,129,0.3)]">
                                         Get Started
@@ -88,7 +85,6 @@ export function Navbar() {
                         <div className="container mx-auto px-4 py-8 flex flex-col gap-6">
                             <Link href="#features" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-gray-300">Features</Link>
                             <Link href="#how-to-play" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-gray-300">How it Works</Link>
-                            <Link href="/leaderboard" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-gray-300">Leaderboard</Link>
                             <div className="h-px w-full bg-white/5"></div>
                             {isAuthenticated && user ? (
                                 <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
@@ -98,9 +94,7 @@ export function Navbar() {
                                 </Link>
                             ) : (
                                 <>
-                                    <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                                        <Button variant="ghost" className="w-full text-white font-bold">Sign In</Button>
-                                    </Link>
+                                    <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="text-center font-bold text-gray-300 hover:text-emerald-400 transition-colors py-2">Sign In</Link>
                                     <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
                                         <Button className="w-full bg-emerald-500 text-gray-950 font-black py-6 rounded-xl">
                                             Get Started

@@ -50,12 +50,12 @@ export default function LoginPage() {
 
       <div className="w-full max-w-md relative z-10">
         {/* Logo & Header */}
-        <div className="text-center mb-10">
-          <Link href="/" className="inline-flex items-center justify-center w-20 h-20 mb-6 bg-white/5 border border-white/10 rounded-2xl p-3 backdrop-blur-md hover:scale-110 transition-all group">
+        <div className="text-center mb-12">
+          <Link href="/" className="inline-flex items-center justify-center w-32 h-32 sm:w-40 sm:h-40 mb-8 bg-white/5 border border-white/10 rounded-2xl p-3 backdrop-blur-md hover:scale-110 transition-all group">
             <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
             <img src="/logo2.png" alt="WORD SQUARES" className="relative w-full h-full object-contain" />
           </Link>
-          <h1 className="text-3xl font-black text-white tracking-tight mb-2">Welcome Back</h1>
+          <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight mb-3">Welcome Back</h1>
           <p className="text-gray-400 font-medium tracking-wide">Sign in to continue your streak</p>
         </div>
 

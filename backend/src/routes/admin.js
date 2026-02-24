@@ -10,7 +10,9 @@ const {
   getReports,
   resolveReport,
   getDashboardStats,
-  getUsers
+  getUsers,
+  getSettings,
+  updateSettings
 } = require('../controllers/adminController');
 
 const { protect, adminOnly } = require('../middleware/auth');
@@ -36,5 +38,9 @@ router.put('/report/:id', mongoIdRule('id'), validate, resolveReport);
 
 // User management
 router.get('/users', getUsers);
+
+// Settings management
+router.get('/settings', getSettings);
+router.put('/settings', updateSettings);
 
 module.exports = router;

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import { useSettings } from '@/lib/settings-context';
 import { AdminLayout } from '@/components/admin';
 import { Card, CardContent, Button, Input } from '@/components/ui';
 import { api } from '@/lib/api';
@@ -11,6 +12,7 @@ import { HiArrowLeft, HiSave, HiCog } from 'react-icons/hi';
 
 export default function SettingsPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { refreshSettings: globalRefresh } = useSettings();
   const router = useRouter();
   const [settings, setSettings] = useState({
     siteName: 'Square Puzzles',
@@ -41,11 +43,18 @@ export default function SettingsPage() {
     const loadSettings = async () => {
       if (isAuthenticated && user?.role === 'admin') {
         try {
-          // TODO: Implement API endpoint for settings
-          // const response = await api.getSettings();
-          // if (response.success) {
-          //   setSettings(response.settings);
-          // }
+          const response = await api.getSettings() as any;
+          if (response.success && response.settings) {
+            setSettings({
+              siteName: response.settings.siteName || 'Square Puzzles',
+              siteDescription: response.settings.siteDescription || 'Daily Word Puzzle Game',
+              maintenanceMode: false,
+              allowRegistrations: true,
+              maxPuzzleSize: 4,
+              defaultHintCells: 2,
+              emailNotifications: true,
+            });
+          }
         } catch (error) {
           console.error('Failed to load settings:', error);
         } finally {
@@ -62,8 +71,11 @@ export default function SettingsPage() {
     setIsSaving(true);
 
     try {
-      // TODO: Implement API endpoint for saving settings
-      // await api.updateSettings(settings);
+      await api.updateSettings({
+        siteName: settings.siteName,
+        siteDescription: settings.siteDescription
+      });
+      await globalRefresh();
       alert('Settings saved successfully!');
     } catch (error) {
       console.error('Failed to save settings:', error);
@@ -99,7 +111,7 @@ export default function SettingsPage() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-            <p className="text-gray-600">Manage application settings</p>
+            <p className="text-gray-600">Manage site name and description</p>
           </div>
         </div>
 
@@ -115,93 +127,36 @@ export default function SettingsPage() {
                 <div className="space-y-4">
                   <Input
                     label="Site Name"
+                    placeholder="Enter site name"
                     value={settings.siteName}
                     onChange={(e) => setSettings({ ...settings, siteName: e.target.value })}
                   />
-                  <div>
+                  {/* <div>
                     <label className="form-label">Site Description</label>
                     <textarea
+                      placeholder="Enter site description"
                       value={settings.siteDescription}
                       onChange={(e) => setSettings({ ...settings, siteDescription: e.target.value })}
                       className="form-input resize-none"
-                      rows={2}
+                      rows={3}
                     />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Feature Settings */}
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Feature Settings</h2>
-                <div className="space-y-4">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={settings.maintenanceMode}
-                      onChange={(e) => setSettings({ ...settings, maintenanceMode: e.target.checked })}
-                      className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500"
-                    />
-                    <span className="text-gray-700">Maintenance Mode</span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={settings.allowRegistrations}
-                      onChange={(e) => setSettings({ ...settings, allowRegistrations: e.target.checked })}
-                      className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500"
-                    />
-                    <span className="text-gray-700">Allow New Registrations</span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={settings.emailNotifications}
-                      onChange={(e) => setSettings({ ...settings, emailNotifications: e.target.checked })}
-                      className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500"
-                    />
-                    <span className="text-gray-700">Email Notifications</span>
-                  </label>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Puzzle Settings */}
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Puzzle Settings</h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="form-label">Max Puzzle Size</label>
-                    <select
-                      value={settings.maxPuzzleSize}
-                      onChange={(e) => setSettings({ ...settings, maxPuzzleSize: Number(e.target.value) })}
-                      className="form-input"
-                    >
-                      <option value={4}>4 x 4</option>
-                      <option value={5}>5 x 5</option>
-                      <option value={6}>6 x 6</option>
-                    </select>
-                  </div>
-                  <Input
-                    label="Default Hint Cells"
-                    type="number"
-                    value={settings.defaultHintCells}
-                    onChange={(e) => setSettings({ ...settings, defaultHintCells: Number(e.target.value) })}
-                    min={0}
-                    max={10}
-                  />
+                  </div> */}
                 </div>
               </CardContent>
             </Card>
 
             {/* Save Button */}
             <div className="flex justify-end">
-              <Button type="submit" isLoading={isSaving}>
+              <Button type="submit" isLoading={isSaving} className="px-8 font-semibold">
                 <HiSave className="w-5 h-5 mr-2" />
-                Save Settings
+                Save Changes
               </Button>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-blue-700 text-sm">
+                <strong>Note:</strong> Changes to the site name and description will be updated across the application immediately after saving.
+              </p>
             </div>
           </div>
         </form>

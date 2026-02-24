@@ -30,6 +30,8 @@ export default function AdminPuzzleEdit() {
   const [visibleCells, setVisibleCells] = useState<CellPosition[]>([]);
   const [hintLetters, setHintLetters] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [acrossClues, setAcrossClues] = useState<{ number: number; text: string }[]>([]);
+  const [downClues, setDownClues] = useState<{ number: number; text: string }[]>([]);
 
   const hintCells = useMemo(() => {
     const cells: CellPosition[] = [];
@@ -69,6 +71,8 @@ export default function AdminPuzzleEdit() {
           setDailyMessage(res.puzzle.dailyMessage || '');
           setIsActive(res.puzzle.isActive ?? true);
           setVisibleCells(res.puzzle.visibleCells || []);
+          setAcrossClues(res.puzzle.acrossClues || []);
+          setDownClues(res.puzzle.downClues || []);
         }
       } catch (err) {
         console.error('Failed to load puzzle', err);
@@ -84,17 +88,31 @@ export default function AdminPuzzleEdit() {
     if (!puzzle) return;
     setIsSaving(true);
     try {
-      await api.updatePuzzle(puzzle._id, { 
-        dailyMessage, 
+      await api.updatePuzzle(puzzle._id, {
+        dailyMessage,
         isActive,
         visibleCells,
-        hintCells 
+        hintCells,
+        acrossClues,
+        downClues
       });
       router.push(`/admin/puzzle/${puzzle._id}`);
     } catch (err) {
       console.error('Failed to save puzzle', err);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleClueChange = (type: 'across' | 'down', index: number, text: string) => {
+    if (type === 'across') {
+      const newClues = [...acrossClues];
+      newClues[index] = { ...newClues[index], text };
+      setAcrossClues(newClues);
+    } else {
+      const newClues = [...downClues];
+      newClues[index] = { ...newClues[index], text };
+      setDownClues(newClues);
     }
   };
 
@@ -131,7 +149,7 @@ export default function AdminPuzzleEdit() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Edit Puzzle</h1>
-            <p className="text-gray-600">Modify basic puzzle settings</p>
+            <p className="text-gray-600">Modify puzzle settings and clues</p>
           </div>
         </div>
 
@@ -150,6 +168,54 @@ export default function AdminPuzzleEdit() {
                 </label>
               </div>
 
+              {/* Clues Settings */}
+              <div className="border-t pt-6">
+                <h3 className="font-semibold text-gray-900 mb-4">Edit Clues</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-medium text-emerald-700 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                      Across Clues
+                    </h4>
+                    {acrossClues.length > 0 ? (
+                      acrossClues.map((clue, index) => (
+                        <div key={`edit-across-${clue.number}`} className="flex gap-2">
+                          <span className="font-bold text-gray-400 py-2 min-w-[1.5rem]">{clue.number}.</span>
+                          <Input
+                            value={clue.text}
+                            onChange={(e) => handleClueChange('across', index, e.target.value)}
+                            placeholder="Enter across clue..."
+                          />
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-400 italic">No across clues found for this puzzle.</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-medium text-blue-700 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                      Down Clues
+                    </h4>
+                    {downClues.length > 0 ? (
+                      downClues.map((clue, index) => (
+                        <div key={`edit-down-${clue.number}`} className="flex gap-2">
+                          <span className="font-bold text-gray-400 py-2 min-w-[1.5rem]">{clue.number}.</span>
+                          <Input
+                            value={clue.text}
+                            onChange={(e) => handleClueChange('down', index, e.target.value)}
+                            placeholder="Enter down clue..."
+                          />
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-400 italic">No down clues found for this puzzle.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               {/* Puzzle Grid Preview */}
               <div className="border-t pt-6">
                 <h3 className="font-semibold text-gray-900 mb-4">Puzzle Preview</h3>
@@ -160,7 +226,7 @@ export default function AdminPuzzleEdit() {
                     visibleLetters={[]}
                     hintCells={[]}
                     showHints={false}
-                    onCellChange={() => {}}
+                    onCellChange={() => { }}
                     disabled={true}
                     highlightVisibleCells={visibleCells}
                     highlightHintCells={hintCells}

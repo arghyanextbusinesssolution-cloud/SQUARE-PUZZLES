@@ -11,7 +11,9 @@ const puzzleRoutes = require('./routes/puzzle');
 const attemptRoutes = require('./routes/attempt');
 const adminRoutes = require('./routes/admin');
 const userRoutes = require('./routes/user');
-const announcementRoutes = require('./routes/announcement');
+// const announcementRoutes = require('./routes/announcement');
+const publicSettingsRoutes = require('./routes/publicSettings');
+
 
 
 // Import middleware
@@ -85,7 +87,8 @@ app.use('/api/puzzle', puzzleRoutes);
 app.use('/api/attempt', attemptRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/user', userRoutes);
-app.use('/api/announcements', announcementRoutes);
+// app.use('/api/announcements', announcementRoutes);
+app.use('/api/settings', publicSettingsRoutes);
 
 
 // 404 handler

@@ -41,7 +41,7 @@ export default function PuzzleActions({
       onClick: onHint,
     },
     {
-      label: "Copy Yesterday's Result",
+      label: "Share Result",
       icon: <HiClipboardCopy className="w-5 h-5 text-blue-500" />,
       onClick: onCopyYesterday,
     },

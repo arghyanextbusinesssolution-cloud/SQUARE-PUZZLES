@@ -72,7 +72,7 @@ export default function DashboardPage() {
     {
       icon: <HiHeart className="w-7 h-7 text-pink-500" />,
       label: 'My Streak',
-      href: '/profile',
+      href: '/streak',
       bgColor: 'bg-pink-50',
       iconBgColor: 'bg-pink-100',
     },

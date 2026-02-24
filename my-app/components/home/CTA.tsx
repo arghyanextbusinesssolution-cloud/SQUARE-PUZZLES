@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui';
 import Link from 'next/link';
-import { Play, Trophy, Users, Clock, Zap, History as HistoryIcon } from 'lucide-react';
+import { Play, Trophy, Users, Clock, Zap } from 'lucide-react';
 
 // Mock avatars for 'users online' row
 const AVATARS = [
@@ -80,8 +80,8 @@ export const CTA = () => {
                                 </h2>
 
                                 <p className="text-lg text-gray-300 mb-8 leading-relaxed font-medium">
-                                    Challenge yourself with today's grid. <br className="hidden md:block" />
-                                    Explore the archive and solve over 400+ puzzles.
+                                    Challenge yourself with today's grid and <br className="hidden md:block" />
+                                    join thousands of players worldwide.
                                 </p>
 
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-10">
@@ -91,23 +91,17 @@ export const CTA = () => {
                                             Play Today's Puzzle
                                         </Button>
                                     </Link>
-                                    <Link href="/archive" className="w-full sm:w-auto">
-                                        <Button className="w-full sm:w-auto h-14 px-8 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 border border-white/10 font-bold text-lg transition-all flex items-center justify-center gap-2">
-                                            <HistoryIcon className="w-5 h-5 text-emerald-500" />
-                                            Browse Archive
-                                        </Button>
-                                    </Link>
                                 </div>
 
                                 {/* Social Proof Row */}
                                 <div className="flex items-center justify-center lg:justify-start gap-4">
-                                    <div className="flex -space-x-4">
+                                    {/* <div className="flex -space-x-4">
                                         {AVATARS.map((src, i) => (
                                             <div key={i} className="w-10 h-10 rounded-full border-2 border-gray-900 bg-gray-800 overflow-hidden relative z-10 transition-transform hover:scale-110 hover:z-20">
                                                 <img src={src} alt="User" className="w-full h-full object-cover" />
                                             </div>
                                         ))}
-                                    </div>
+                                    </div> */}
                                     <div className="text-left">
                                         <div className="flex items-center gap-1.5">
                                             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>

@@ -26,7 +26,7 @@ const features = [
     {
         icon: <HiUserGroup className="w-8 h-8" />,
         title: "Puzzle Archive",
-        description: "Missed a day? No problem. Access over 400+ past puzzles any time.",
+        description: "Missed a day? No problem. Access over 30+ past puzzles any time.",
         color: "bg-purple-500"
     }
 ];

@@ -121,6 +121,8 @@ export interface AdminPuzzle {
     name?: string;
   };
   isActive: boolean;
+  acrossClues?: Clue[];
+  downClues?: Clue[];
   createdAt: string;
 }
 
@@ -150,6 +152,7 @@ export interface DashboardStats {
   totalPuzzles: number;
   pendingReports: number;
   todayAttempts: number;
+  nextPuzzleScheduled: boolean;
 }
 
 // User Stats

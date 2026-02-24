@@ -226,13 +226,13 @@ const getYesterdayResult = async (req, res, next) => {
       puzzleId: puzzle._id
     });
 
-    // Generate clipboard text
-    const clipboardText = generateClipboardText(
-      puzzle.solutionGrid,
-      puzzle.hintCells,
-      puzzle.puzzleDate,
-      attempt?.hintUsed || false
-    );
+    // Generate clipboard text - For yesterday we usually show the solution
+    const clipboardText = generateClipboardText({
+      solutionGrid: puzzle.solutionGrid,
+      hintCells: puzzle.hintCells,
+      puzzleDate: puzzle.puzzleDate,
+      type: 'solution'
+    });
 
     res.status(200).json({
       success: true,
@@ -321,13 +321,19 @@ const getShareResult = async (req, res, next) => {
       });
     }
 
+    // Determine share type from query
+    const { type = 'performance' } = req.query;
+
     // Generate clipboard text
-    const clipboardText = generateClipboardText(
-      puzzle.solutionGrid,
-      puzzle.hintCells,
-      puzzle.puzzleDate,
-      attempt.hintUsed || false
-    );
+    const clipboardText = generateClipboardText({
+      solutionGrid: puzzle.solutionGrid,
+      userGrid: attempt.currentGrid,
+      hintCells: puzzle.hintCells,
+      puzzleDate: puzzle.puzzleDate,
+      timeTakenSeconds: attempt.timeTakenSeconds || 0,
+      hintUsed: attempt.hintUsed,
+      type
+    });
 
     res.status(200).json({
       success: true,

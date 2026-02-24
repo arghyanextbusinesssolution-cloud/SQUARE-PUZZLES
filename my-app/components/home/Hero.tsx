@@ -77,35 +77,7 @@ export const Hero = () => {
                         </Link>
                     </motion.div>
 
-                    {/* Mini Stats */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.8 }}
-                        className="flex items-center justify-center md:justify-start gap-8 border-t border-white/10 pt-8"
-                    >
-                        <div className="flex items-center gap-2">
-                            <div className="p-2 bg-orange-500/10 rounded-lg text-orange-400 text-xl"><HiFire /></div>
-                            <div className="text-left">
-                                <div className="text-white font-bold text-sm">124k</div>
-                                <div className="text-gray-500 text-xs">Daily Streak</div>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400 text-xl"><HiUserGroup /></div>
-                            <div className="text-left">
-                                <div className="text-white font-bold text-sm">10,000+</div>
-                                <div className="text-gray-500 text-xs">Players Active</div>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="p-2 bg-yellow-500/10 rounded-lg text-yellow-400 text-xl"><HiStar /></div>
-                            <div className="text-left">
-                                <div className="text-white font-bold text-sm">#1</div>
-                                <div className="text-gray-500 text-xs">Puzzle Site</div>
-                            </div>
-                        </div>
-                    </motion.div>
+
                 </div>
 
                 {/* Interactive Demo */}

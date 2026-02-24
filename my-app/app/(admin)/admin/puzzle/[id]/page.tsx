@@ -110,15 +110,58 @@ export default function AdminPuzzleView() {
                 visibleLetters={puzzle.visibleCells.map((c) => ({ row: c.row, col: c.col, letter: puzzle.solutionGrid?.[c.row]?.[c.col] || '' }))}
                 hintCells={puzzle.hintCells}
                 showHints={false}
-                onCellChange={() => {}}
+                onCellChange={() => { }}
                 disabled={true}
               />
             </div>
 
-            <div className="mt-4 text-sm text-gray-600">
+            <div className="mt-4 text-sm text-gray-600 space-y-1">
               <p><strong>Words:</strong> {puzzle.words.length}</p>
               <p><strong>Visible cells:</strong> {puzzle.visibleCells.length}</p>
               <p><strong>Hint cells:</strong> {puzzle.hintCells.length}</p>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Puzzle Clues</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <h4 className="font-medium text-emerald-700 mb-3 flex items-center gap-2">
+                    <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                    Across
+                  </h4>
+                  {puzzle.acrossClues && puzzle.acrossClues.length > 0 ? (
+                    <ul className="space-y-3">
+                      {puzzle.acrossClues.map((clue) => (
+                        <li key={`across-${clue.number}`} className="flex gap-3 text-sm">
+                          <span className="font-bold text-gray-400 min-w-[1.5rem]">{clue.number}.</span>
+                          <span className="text-gray-700">{clue.text || <em className="text-gray-400">No clue text</em>}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-gray-400 italic">No across clues defined</p>
+                  )}
+                </div>
+
+                <div>
+                  <h4 className="font-medium text-blue-700 mb-3 flex items-center gap-2">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    Down
+                  </h4>
+                  {puzzle.downClues && puzzle.downClues.length > 0 ? (
+                    <ul className="space-y-3">
+                      {puzzle.downClues.map((clue) => (
+                        <li key={`down-${clue.number}`} className="flex gap-3 text-sm">
+                          <span className="font-bold text-gray-400 min-w-[1.5rem]">{clue.number}.</span>
+                          <span className="text-gray-700">{clue.text || <em className="text-gray-400">No clue text</em>}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-gray-400 italic">No down clues defined</p>
+                  )}
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>

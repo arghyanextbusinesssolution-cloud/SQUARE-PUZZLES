@@ -3,106 +3,125 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 
-const WORDS = ['WORD', 'PLAY', 'GAME', 'LIFE'];
-const GRID_SIZE = 4;
+// Define the puzzle structure with clues and column headers
+const COLUMN_HEADERS = ['Tea', 'Assistance', 'Assister', 'Attempts'];
+const ROW_CLUES = ['Converse', 'Fur', 'Little Andrew', 'March 15'];
+
+// Map grid positions: (row, col) -> letter
+const GRID_LETTERS = [
+    ['C', 'H', 'A', 'T'],      // Converse
+    ['H', 'A', 'I', 'R'],      // Fur
+    ['A', 'N', 'D', 'Y'],      // Little Andrew
+    ['I', 'D', 'E', 'S'],      // March 15
+];
 
 export function PuzzleDemo() {
-    const [activeRow, setActiveRow] = useState(0);
-    const [activeCol, setActiveCol] = useState(0);
-    const [grid, setGrid] = useState<string[][]>(
-        Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(''))
-    );
+    const [filledCells, setFilledCells] = useState<Set<string>>(new Set());
+    const [currentCell, setCurrentCell] = useState<string | null>(null);
 
-    // Simulate typing effect
     useEffect(() => {
-        let currentRow = 0;
-        let currentCol = 0;
-        let wordIndex = 0;
+        let cellIndex = 0;
+        const cellSequence = [
+            '0-0', '0-1', '0-2', '0-3',   // Row 1
+            '1-0', '1-1', '1-2', '1-3',   // Row 2
+            '2-0', '2-1', '2-2', '2-3',   // Row 3
+            '3-0', '3-1', '3-2', '3-3',   // Row 4
+        ];
 
         const interval = setInterval(() => {
-            setGrid(prev => {
-                const newGrid = [...prev.map(row => [...row])];
-                if (currentCol < 4) {
-                    newGrid[currentRow][currentCol] = WORDS[currentRow % WORDS.length][currentCol];
-                    setActiveCol(currentCol + 1);
-                    currentCol++;
-                } else {
-                    // Row complete, move to next after a pause
-                    if (currentRow < 3) {
-                        currentRow++;
-                        currentCol = 0;
-                        setActiveRow(currentRow);
-                        setActiveCol(0);
-                    } else {
-                        // Reset
-                        currentRow = 0;
-                        currentCol = 0;
-                        setActiveRow(0);
-                        setActiveCol(0);
-                        return Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(''));
-                    }
-                }
-                return newGrid;
-            });
-
+            if (cellIndex < cellSequence.length) {
+                const cellKey = cellSequence[cellIndex];
+                setCurrentCell(cellKey);
+                setFilledCells(prev => new Set([...prev, cellKey]));
+                cellIndex++;
+            } else if (cellIndex === cellSequence.length) {
+                // Animation complete, pause before resetting
+                cellIndex++;
+                setTimeout(() => {
+                    cellIndex = 0;
+                    setFilledCells(new Set());
+                    setCurrentCell(null);
+                }, 60000); // 1 minute pause
+            }
         }, 600);
 
         return () => clearInterval(interval);
     }, []);
 
-    return (
-        <div className="relative">
-            {/* Decorative background blobs */}
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl animate-pulse-glow"></div>
-            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-3xl animate-pulse-glow" style={{ animationDelay: '1s' }}></div>
+    const renderCell = (row: number, col: number) => {
+        const key = `${row}-${col}`;
+        const letter = GRID_LETTERS[row][col];
+        const isFilled = filledCells.has(key);
+        const isActive = currentCell === key;
 
-            <div className="relative z-10 glass-panel p-6 rounded-2xl shadow-2xl border border-white/10 transform rotate-1 hover:rotate-0 transition-transform duration-500">
-                <div className="grid grid-cols-4 gap-3">
-                    {grid.map((row, rowIndex) => (
-                        row.map((letter, colIndex) => {
-                            const isActive = rowIndex === activeRow && colIndex === activeCol;
-                            const isFilled = !!letter;
-                            const isRowComplete = rowIndex < activeRow;
-
-                            return (
-                                <motion.div
-                                    key={`${rowIndex}-${colIndex}`}
-                                    initial={{ scale: 0.8, opacity: 0 }}
-                                    animate={{
-                                        scale: 1,
-                                        opacity: 1,
-                                        backgroundColor: isRowComplete ? (rowIndex % 2 === 0 ? '#10b981' : '#f59e0b') : (isFilled ? '#1e293b' : '#0f172a'),
-                                        borderColor: isActive ? '#a78bfa' : (isRowComplete ? 'transparent' : '#334155'),
-                                    }}
-                                    transition={{ duration: 0.2 }}
-                                    className={`
-                    w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16
+        return (
+            <motion.div
+                key={key}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{
+                    scale: isActive ? 1.05 : 1,
+                    opacity: 1,
+                    backgroundColor: isFilled ? '#1e293b' : '#0f172a',
+                    borderColor: isActive ? '#a78bfa' : '#334155',
+                }}
+                transition={{ duration: 0.2 }}
+                className={`
+                    h-10 sm:h-12 md:h-14 lg:h-16
                     flex items-center justify-center
-                    text-2xl font-bold rounded-xl border-2
-                    ${isRowComplete ? 'text-gray-900' : 'text-white'}
-                    ${isActive ? 'shadow-[0_0_15px_rgba(139,92,246,0.5)] z-20 scale-110' : ''}
-                  `}
-                                >
-                                    {letter}
-                                    {isActive && (
-                                        <motion.div
-                                            layoutId="cursor"
-                                            className="absolute bottom-2 w-1/2 h-1 bg-purple-400 rounded-full"
-                                            animate={{ opacity: [1, 0] }}
-                                            transition={{ repeat: Infinity, duration: 0.8 }}
-                                        />
-                                    )}
-                                </motion.div>
-                            );
-                        })
-                    ))}
-                </div>
+                    text-sm sm:text-base md:text-lg lg:text-xl font-bold rounded border-2
+                    text-white flex-shrink-0
+                    ${isActive ? 'shadow-[0_0_20px_rgba(139,92,246,0.6)]' : ''}
+                `}
+            >
+                {isFilled && letter}
+                {isActive && !isFilled && (
+                    <motion.div
+                        className="absolute bottom-1 w-1/2 h-0.5 bg-purple-400 rounded-full"
+                        animate={{ opacity: [1, 0] }}
+                        transition={{ repeat: Infinity, duration: 0.8 }}
+                    />
+                )}
+            </motion.div>
+        );
+    };
 
-                {/* Keyboard Hint */}
-                <div className="mt-6 flex justify-center gap-1 opacity-50">
-                    <div className="h-1 w-12 bg-white/20 rounded-full"></div>
-                    <div className="h-1 w-32 bg-white/20 rounded-full"></div>
-                    <div className="h-1 w-8 bg-white/20 rounded-full"></div>
+    return (
+        <div className="relative w-full">
+            {/* Decorative background blobs */}
+            <div className="absolute -top-10 -right-10 w-32 h-32 sm:w-40 sm:h-40 bg-purple-500/20 rounded-full blur-3xl animate-pulse-glow"></div>
+            <div className="absolute -bottom-10 -left-10 w-32 h-32 sm:w-40 sm:h-40 bg-emerald-500/20 rounded-full blur-3xl animate-pulse-glow" style={{ animationDelay: '1s' }}></div>
+
+            <div className="relative z-10 glass-panel p-3 sm:p-4 md:p-6 rounded-2xl shadow-2xl border border-white/10 w-full overflow-x-auto">
+                {/* Table Layout using CSS Grid */}
+                <div className="space-y-2 sm:space-y-3 md:space-y-4 min-w-max sm:min-w-0">
+                    {/* Header Row */}
+                    <div className="grid gap-1.5 sm:gap-2 md:gap-3" style={{ gridTemplateColumns: 'minmax(80px, auto) repeat(4, 1fr)' }}>
+                        {/* Empty corner cell */}
+                        <div className=""></div>
+                        
+                        {/* Column headers */}
+                        {COLUMN_HEADERS.map((header) => (
+                            <div
+                                key={header}
+                                className="text-center font-bold text-gray-400 text-xs sm:text-sm md:text-base pb-1 md:pb-2 border-b-2 border-white/20 break-words"
+                            >
+                                {header}
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Data Rows */}
+                    {ROW_CLUES.map((clue, rowIndex) => (
+                        <div key={rowIndex} className="grid gap-1.5 sm:gap-2 md:gap-3" style={{ gridTemplateColumns: 'minmax(80px, auto) repeat(4, 1fr)' }}>
+                            {/* Row Header (Clue) */}
+                            <div className="font-semibold text-gray-200 text-xs pr-1 md:pr-3 border-r-2 border-white/20 flex items-center truncate">
+                                {clue}
+                            </div>
+
+                            {/* Data Cells */}
+                            {[0, 1, 2, 3].map((col) => renderCell(rowIndex, col))}
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>

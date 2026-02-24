@@ -176,13 +176,16 @@ const compareGrids = (userGrid, solutionGrid) => {
 
 /**
  * Generate clipboard text for sharing
- * @param {Array} grid - The puzzle grid
- * @param {Array} hintCells - Cells that were hinted
- * @param {Date} puzzleDate - Date of the puzzle
- * @param {boolean} hintUsed - Whether hint was used
+ * @param {Object} options - Options for generation
+ * @param {Array} options.solutionGrid - The puzzle solution grid
+ * @param {Array} options.userGrid - User's current grid (for performance share)
+ * @param {Array} options.hintCells - Cells that were hinted
+ * @param {Date} options.puzzleDate - Date of the puzzle
+ * @param {number} options.timeTakenSeconds - Time taken to solve
+ * @param {string} options.type - Type of share: 'performance' or 'solution'
  * @returns {string} - Formatted text for clipboard
  */
-const generateClipboardText = (grid, hintCells, puzzleDate, hintUsed) => {
+const generateClipboardText = ({ solutionGrid, userGrid, hintCells, puzzleDate, timeTakenSeconds, hintUsed, type = 'performance' }) => {
   const dateStr = new Date(puzzleDate).toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -190,27 +193,76 @@ const generateClipboardText = (grid, hintCells, puzzleDate, hintUsed) => {
     day: 'numeric'
   });
 
-  let text = `SQUARE PUZZLES - ${dateStr}\n\n`;
+  const formatTime = (secs) => {
+    if (secs == null) return '--:--';
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    if (h > 0) return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
 
-  // Create a set of hint positions for quick lookup
+  if (type === 'solution') {
+    let text = `WORD SQUARES SOLUTION - ${dateStr}\n\n`;
+    for (let row = 0; row < solutionGrid.length; row++) {
+      let rowStr = '';
+      for (let col = 0; col < solutionGrid[row].length; col++) {
+        const letter = solutionGrid[row][col] || ' ';
+        rowStr += ` ${letter} `;
+      }
+      text += rowStr + '\n';
+    }
+    text += `\nPlay at: ${process.env.FRONTEND_URL || 'https://wordsquares.us'}`;
+    return text;
+  }
+
+  // DEFAULT: Performance Share (Emoji Grid)
+  let text = `WORD SQUARES - ${dateStr}\n`;
+  text += `Solved in: ${formatTime(timeTakenSeconds)}\n\n`;
+
   const hintPositions = new Set(
-    hintCells.map(cell => `${cell.row},${cell.col}`)
+    (hintCells || []).map(cell => `${cell.row},${cell.col}`)
   );
 
-  // Build grid visualization
-  for (let row = 0; row < grid.length; row++) {
+  // Crosshair logic: Identify rows and columns with errors/blanks
+  const badRows = new Set();
+  const badCols = new Set();
+
+  for (let row = 0; row < solutionGrid.length; row++) {
+    for (let col = 0; col < solutionGrid[row].length; col++) {
+      const solutionLetter = solutionGrid[row][col]?.toUpperCase() || '';
+      const userLetter = userGrid?.[row]?.[col]?.toUpperCase() || '';
+
+      if (solutionLetter && userLetter !== solutionLetter) {
+        badRows.add(row);
+        badCols.add(col);
+      }
+    }
+  }
+
+  for (let row = 0; row < solutionGrid.length; row++) {
     let rowStr = '';
-    for (let col = 0; col < grid[row].length; col++) {
-      const letter = grid[row][col] || ' ';
-      const isHint = hintPositions.has(`${row},${col}`);
-      rowStr += isHint ? `[${letter}]` : ` ${letter} `;
+    for (let col = 0; col < solutionGrid[row].length; col++) {
+      const solutionLetter = solutionGrid[row][col]?.toUpperCase() || '';
+      const userLetter = userGrid?.[row]?.[col]?.toUpperCase() || '';
+      const isHintCell = hintPositions.has(`${row},${col}`);
+
+      if (!solutionLetter) {
+        rowStr += '⬛'; // Non-playable cell
+      } else if (badRows.has(row) || badCols.has(col)) {
+        rowStr += '⬜'; // Part of a crosshair with an error
+      } else if (hintUsed && isHintCell) {
+        rowStr += '🟧'; // Hint used for this cell
+      } else if (userLetter === solutionLetter) {
+        rowStr += '🟩'; // Correct
+      } else {
+        rowStr += '⬜'; // Fallback incorrect (should be covered by crosshair)
+      }
     }
     text += rowStr + '\n';
   }
 
-  text += `\n${hintUsed ? '(Used hint)' : '(No hint used)'}\n`;
-  text += `\nPlay at: ${process.env.FRONTEND_URL}`;
-
+  text += `\nPlay at: ${process.env.FRONTEND_URL || 'https://wordsquares.us'}`;
   return text;
 };
 

@@ -8,7 +8,7 @@ const { User, PuzzleAttempt } = require('../models');
 const getProfile = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id);
-    
+
     // Get user stats
     const stats = await PuzzleAttempt.aggregate([
       { $match: { userId: req.user._id } },
@@ -25,7 +25,7 @@ const getProfile = async (req, res, next) => {
         }
       }
     ]);
-    
+
     res.status(200).json({
       success: true,
       user: {
@@ -55,17 +55,17 @@ const getProfile = async (req, res, next) => {
 const updateProfile = async (req, res, next) => {
   try {
     const { name, avatar } = req.body;
-    
+
     const updateFields = {};
     if (name !== undefined) updateFields.name = name;
     if (avatar !== undefined) updateFields.avatar = avatar;
-    
+
     const user = await User.findByIdAndUpdate(
       req.user._id,
       updateFields,
       { new: true, runValidators: true }
     );
-    
+
     res.status(200).json({
       success: true,
       user: {
@@ -94,50 +94,58 @@ const getStreak = async (req, res, next) => {
     })
       .populate('puzzleId', 'puzzleDate')
       .sort({ 'puzzleId.puzzleDate': -1 });
-    
+
     let currentStreak = 0;
     let maxStreak = 0;
     let tempStreak = 0;
     let lastDate = null;
-    
+    let isCurrentChain = true;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
     for (const attempt of completedAttempts) {
       if (!attempt.puzzleId) continue;
-      
+
       const puzzleDate = new Date(attempt.puzzleId.puzzleDate);
       puzzleDate.setHours(0, 0, 0, 0);
-      
+
       if (!lastDate) {
         tempStreak = 1;
         lastDate = puzzleDate;
-        
-        // Check if this is today or yesterday for current streak
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-        
-        if (puzzleDate.getTime() === today.getTime() || 
-            puzzleDate.getTime() === yesterday.getTime()) {
+
+        // If the newest solve is today, tomorrow, or even further in the future, it's a current streak
+        // Also allow yesterday if they haven't solved today's puzzle yet
+        if (puzzleDate >= yesterday) {
           currentStreak = 1;
+        } else {
+          isCurrentChain = false;
         }
       } else {
-        const dayDiff = Math.floor((lastDate - puzzleDate) / (1000 * 60 * 60 * 24));
-        
+        const diffMs = lastDate.getTime() - puzzleDate.getTime();
+        const dayDiff = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
         if (dayDiff === 1) {
           tempStreak++;
-          if (currentStreak > 0) currentStreak++;
+          if (isCurrentChain) currentStreak++;
+        } else if (dayDiff === 0) {
+          // Already counted this day (multiple puzzles for same day)
+          continue;
         } else {
+          // Gap found
           maxStreak = Math.max(maxStreak, tempStreak);
           tempStreak = 1;
-          currentStreak = 0;
+          isCurrentChain = false;
         }
-        
+
         lastDate = puzzleDate;
       }
     }
-    
+
     maxStreak = Math.max(maxStreak, tempStreak);
-    
+
     res.status(200).json({
       success: true,
       streak: {

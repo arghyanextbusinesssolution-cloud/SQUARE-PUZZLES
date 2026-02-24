@@ -23,6 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isLoading: true,
     isAuthenticated: false,
   });
+  const [isMounted, setIsMounted] = useState(false);
 
   const refreshUser = useCallback(async () => {
     try {
@@ -70,10 +71,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Handle mounting to avoid hydration mismatch
   useEffect(() => {
-    console.log('[Auth] Initializing auth provider, checking session...');
-    refreshUser();
-  }, [refreshUser]);
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted) {
+      console.log('[Auth] Initializing auth provider, checking session...');
+      refreshUser();
+    }
+  }, [isMounted, refreshUser]);
 
   const login = async (email: string, password: string) => {
     const response = await api.login(email, password) as { success: boolean; user: User; token: string };

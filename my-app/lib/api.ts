@@ -145,19 +145,16 @@ class ApiClient {
     });
   }
 
-  async getYesterdayResult(useShareMatrix?: boolean, elapsedSeconds?: number) {
+  async getYesterdayResult(type: string = 'solution') {
     return this.request('/puzzle/yesterday', {
-      params: {
-        useShareMatrix: String(!!useShareMatrix),
-        elapsedSeconds: elapsedSeconds !== undefined ? String(elapsedSeconds) : '',
-      },
+      params: { type },
     });
   }
 
-  async getShareResult(puzzleId: string, useShareMatrix?: boolean, elapsedSeconds?: number) {
+  async getShareResult(puzzleId: string, type: string = 'performance', elapsedSeconds?: number) {
     return this.request(`/puzzle/share/${puzzleId}`, {
       params: {
-        useShareMatrix: String(!!useShareMatrix),
+        type,
         elapsedSeconds: elapsedSeconds !== undefined ? String(elapsedSeconds) : '',
       },
     });
@@ -279,6 +276,23 @@ class ApiClient {
   async deleteAnnouncement(id: string) {
     return this.request(`/announcements/${id}`, {
       method: 'DELETE',
+    });
+  }
+
+
+  // Settings endpoints
+  async getPublicSettings() {
+    return this.request('/settings');
+  }
+
+  async getSettings() {
+    return this.request('/admin/settings');
+  }
+
+  async updateSettings(data: { siteName: string; siteDescription: string }) {
+    return this.request('/admin/settings', {
+      method: 'PUT',
+      body: JSON.stringify(data),
     });
   }
 }
