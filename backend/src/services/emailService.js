@@ -1,7 +1,8 @@
 /**
- * Email service using EmailJS REST API
- * Sends emails from the backend with proper SMTP/EmailJS configuration
+ * Email service
+ * Sends emails from the backend using Nodemailer and EmailJS (for welcome emails)
  */
+const nodemailer = require('nodemailer');
 
 const EMAILJS_API = 'https://api.emailjs.com/api/v1.0/email/send';
 
@@ -77,7 +78,67 @@ const sendWelcomeEmail = async (userEmail, userName) => {
   }
 };
 
+/**
+ * Configure Nodemailer SMTP Transporter
+ */
+const createTransporter = () => {
+  return nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+};
+
+/**
+ * Send password reset email via Nodemailer
+ * @param {string} userEmail - Recipient email
+ * @param {string} resetToken - The raw reset token
+ * @returns {Promise<{ success: boolean, error?: string }>}
+ */
+const sendPasswordResetEmail = async (userEmail, resetToken) => {
+  console.log('[EmailService] Attempting to send password reset email to:', userEmail);
+
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.error('[EmailService] Not configured: missing EMAIL_USER or EMAIL_PASS');
+    return { success: false, error: 'SMTP not configured' };
+  }
+
+  const transporter = createTransporter();
+
+  // Use CLIENT_URL from env, fallback to frontend URL for safety
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+  const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
+
+  const mailOptions = {
+    from: `"Square Puzzles" <${process.env.EMAIL_USER}>`,
+    to: userEmail,
+    subject: 'Password Reset Request',
+    html: `
+      <h2>Password Reset Request</h2>
+      <p>Someone requested to reset the password for your Square Puzzles account.</p>
+      <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>
+      <p>Click the link below to reset your password. This link is valid for 15 minutes.</p>
+      <a href="${resetUrl}" style="display:inline-block;padding:10px 20px;margin-top:20px;background-color:#059669;color:white;text-decoration:none;border-radius:5px;">Reset Password</a>
+      <p style="margin-top:30px;color:#666;font-size:12px;">Link not working? Paste this into your browser: <br>${resetUrl}</p>
+    `,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('[EmailService] Password reset email sent:', info.messageId);
+    return { success: true };
+  } catch (err) {
+    console.error('[EmailService] Error sending password reset email:', err.message);
+    return { success: false, error: err.message };
+  }
+};
+
 module.exports = {
   sendWelcomeEmail,
+  sendPasswordResetEmail,
   isConfigured,
 };

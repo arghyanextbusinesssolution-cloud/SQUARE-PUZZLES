@@ -2,136 +2,105 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Button, MailIcon } from '@/components/ui';
+import { Button, Input, Card, CardContent } from '@/components/ui';
 import { api } from '@/lib/api';
-import { sendPasswordResetEmail } from '@/lib/emailjs';
-import { HiArrowLeft, HiCheckCircle } from 'react-icons/hi';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true);
+    setSuccessMessage('');
 
+    if (!email) {
+      setError('Please enter your email address');
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const response = await api.forgotPassword(email) as { success: boolean; resetToken?: string };
-      
+      const response = await api.forgotPassword(email) as { success: boolean; message: string };
       if (response.success) {
-        // In production, the backend would send the email
-        // For development, we can use EmailJS directly
-        if (response.resetToken) {
-          const resetLink = `${window.location.origin}/reset-password?token=${response.resetToken}`;
-          await sendPasswordResetEmail(email, 'User', resetLink);
-        }
-        
-        setIsSuccess(true);
+        setSuccessMessage(response.message || 'If an account exists with that email, a password reset link will be sent.');
+        setEmail('');
+      } else {
+        setError('Something went wrong. Please try again.');
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send reset email');
+    } catch (err: any) {
+      setError(err.message || 'Failed to send reset link.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (isSuccess) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-50 px-4">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-full mb-4">
-              <HiCheckCircle className="w-8 h-8 text-emerald-600" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Check Your Email</h1>
-            <p className="text-gray-600 mb-6">
-              We&apos;ve sent password reset instructions to <strong>{email}</strong>
-            </p>
-            <p className="text-sm text-gray-500 mb-6">
-              Didn&apos;t receive the email? Check your spam folder or try again.
-            </p>
-            <div className="space-y-3">
-              <Button
-                onClick={() => setIsSuccess(false)}
-                variant="outline"
-                className="w-full"
-              >
-                Try Again
-              </Button>
-              <Link href="/login">
-                <Button variant="ghost" className="w-full">
-                  Back to Login
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-50 px-4">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-600 rounded-2xl mb-4">
-            <span className="text-white font-bold text-2xl">SP</span>
+    <div className="min-h-screen bg-emerald-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-xl border-emerald-100">
+        <CardContent className="p-8">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Forgot Password</h1>
+            <p className="text-gray-600">
+              Enter your email address and we&apos;ll send you a link to reset your password.
+            </p>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Forgot Password?</h1>
-          <p className="text-gray-600 mt-1">No worries, we&apos;ll send you reset instructions</p>
-        </div>
 
-        {/* Form Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <Input
+              label="Email Address"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              disabled={isLoading || !!successMessage}
+              required
+            />
+
             {error && (
-              <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">
+              <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100">
                 {error}
               </div>
             )}
 
-            <div>
-              <label className="form-label">Email</label>
-              <div className="relative">
-                <div className="absolute left-0 top-0 bottom-0 w-12 flex items-center justify-center pointer-events-none text-gray-400">
-                  <MailIcon className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="form-input pl-12"
-                  placeholder="Enter your email address"
-                  required
-                />
+            {successMessage && (
+              <div className="p-4 bg-emerald-50 text-emerald-800 text-sm rounded-lg border border-emerald-100 font-medium">
+                {successMessage}
               </div>
-            </div>
+            )}
 
-            <Button
-              type="submit"
-              isLoading={isLoading}
-              className="w-full py-3"
-              size="lg"
-            >
-              Send Reset Instructions
-            </Button>
+            {!successMessage ? (
+              <Button
+                type="submit"
+                className="w-full h-12 text-lg font-bold"
+                isLoading={isLoading}
+              >
+                Send Reset Link
+              </Button>
+            ) : (
+              <Link href="/login" className="block">
+                <Button variant="secondary" className="w-full">
+                  Return to Login
+                </Button>
+              </Link>
+            )}
+
+            {!successMessage && (
+              <div className="text-center text-sm font-medium text-gray-600">
+                Remember your password?{' '}
+                <Link
+                  href="/login"
+                  className="text-emerald-700 hover:text-emerald-800 underline transition-colors"
+                >
+                  Log In
+                </Link>
+              </div>
+            )}
           </form>
-
-          <div className="mt-6 text-center">
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 text-sm text-emerald-600 hover:text-emerald-700 font-medium"
-            >
-              <HiArrowLeft className="w-4 h-4" />
-              Back to login
-            </Link>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

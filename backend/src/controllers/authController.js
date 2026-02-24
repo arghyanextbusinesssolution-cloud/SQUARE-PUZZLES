@@ -1,5 +1,5 @@
 const { User } = require('../models');
-const { sendWelcomeEmail } = require('../services/emailService');
+const { sendWelcomeEmail, sendPasswordResetEmail } = require('../services/emailService');
 
 /**
  * Cookie options for JWT token
@@ -197,7 +197,7 @@ const updateProfile = async (req, res, next) => {
     };
 
     // Remove undefined fields
-    Object.keys(fieldsToUpdate).forEach(key => 
+    Object.keys(fieldsToUpdate).forEach(key =>
       fieldsToUpdate[key] === undefined && delete fieldsToUpdate[key]
     );
 
@@ -271,22 +271,33 @@ const forgotPassword = async (req, res, next) => {
 
     // Generate reset token
     const resetToken = require('crypto').randomBytes(32).toString('hex');
-    
-    user.passwordResetToken = require('crypto')
+
+    user.resetPasswordToken = require('crypto')
       .createHash('sha256')
       .update(resetToken)
       .digest('hex');
-    user.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
-    
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
+
     await user.save({ validateBeforeSave: false });
 
-    // In production, this would send an email
-    // For now, we return the token (to be used with EmailJS on frontend)
+    // Send email via Nodemailer
+    const emailResult = await sendPasswordResetEmail(user.email, resetToken);
+
+    if (!emailResult.success) {
+      // If email fails, clear the token so they can try again
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+
+      return res.status(500).json({
+        success: false,
+        error: 'Email could not be sent'
+      });
+    }
+
     res.status(200).json({
       success: true,
-      message: 'If an account exists with that email, a password reset link will be sent',
-      // Include token in development for testing
-      ...(process.env.NODE_ENV === 'development' && { resetToken })
+      message: 'If an account exists with that email, a password reset link will be sent'
     });
   } catch (error) {
     next(error);
@@ -306,8 +317,8 @@ const resetPassword = async (req, res, next) => {
       .digest('hex');
 
     const user = await User.findOne({
-      passwordResetToken: resetToken,
-      passwordResetExpires: { $gt: Date.now() }
+      resetPasswordToken: resetToken,
+      resetPasswordExpires: { $gt: Date.now() }
     });
 
     if (!user) {
@@ -319,8 +330,8 @@ const resetPassword = async (req, res, next) => {
 
     // Set new password
     user.password = req.body.password;
-    user.passwordResetToken = undefined;
-    user.passwordResetExpires = undefined;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
     await user.save();
 
     sendTokenResponse(user, 200, res, 'Password reset successful');

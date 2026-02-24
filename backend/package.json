@@ -8,7 +8,11 @@
     "dev": "nodemon src/server.js",
     "seed:admin": "node scripts/seedAdmin.js"
   },
-  "keywords": ["puzzle", "game", "api"],
+  "keywords": [
+    "puzzle",
+    "game",
+    "api"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -22,7 +26,8 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.2.0",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "nodemailer": "^8.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"
