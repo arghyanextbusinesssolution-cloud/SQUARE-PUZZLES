@@ -90,6 +90,7 @@ const createTransporter = () => {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
+    family: 4, // Force IPv4 to avoid ENETUNREACH error on IPv6
     // Add timeouts to prevent long-hanging requests
     connectionTimeout: 10000, // 10 seconds
     greetingTimeout: 10000,
@@ -136,7 +137,16 @@ const sendPasswordResetEmail = async (userEmail, resetToken) => {
     console.log('[EmailService] Password reset email sent:', info.messageId);
     return { success: true };
   } catch (err) {
-    console.error('[EmailService] Error sending password reset email:', err.message);
+    console.error('[EmailService] Comprehensive Error Report for Password Reset:');
+    console.error(' - Error Message:', err.message);
+    console.error(' - Error Code:', err.code);
+    console.error(' - Command:', err.command);
+    console.error(' - Response:', err.response);
+    console.error(' - Host:', err.host);
+    console.error(' - Port:', err.port);
+    if (err.stack) {
+      console.error('[EmailService] Error Stack:', err.stack);
+    }
     return { success: false, error: err.message };
   }
 };
