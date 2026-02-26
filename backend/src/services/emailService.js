@@ -1,16 +1,16 @@
 /**
  * Email service
- * Sends emails from the backend using Nodemailer and EmailJS (for welcome emails)
+ * Sends emails from the backend using EmailJS REST API
  */
-const nodemailer = require('nodemailer');
 
 const EMAILJS_API = 'https://api.emailjs.com/api/v1.0/email/send';
 
 const config = {
   publicKey: process.env.EMAILJS_PUBLIC_KEY,
   privateKey: process.env.EMAILJS_PRIVATE_KEY,
-  serviceId: process.env.EMAILJS_SERVICE_ID || 'default_service',
+  serviceId: process.env.EMAILJS_SERVICE_ID || 'service_t1l15ge',
   templateWelcome: process.env.EMAILJS_TEMPLATE_WELCOME || 'template_hr8f21p',
+  templatePasswordReset: process.env.EMAILJS_TEMPLATE_PASSWORD_RESET || 'template_2icng4s',
 };
 
 /**
@@ -38,7 +38,6 @@ const sendWelcomeEmail = async (userEmail, userName) => {
     return { success: false, error: 'EmailJS not configured' };
   }
 
-  // Template variables - your EmailJS template uses {{email}} for To, {{name}} for subject
   const template_params = {
     email: userEmail,
     name: userName || 'Player',
@@ -79,27 +78,7 @@ const sendWelcomeEmail = async (userEmail, userName) => {
 };
 
 /**
- * Configure Nodemailer SMTP Transporter
- */
-const createTransporter = () => {
-  return nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // true for 465, false for other ports
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-    family: 4, // Force IPv4 to avoid ENETUNREACH error on IPv6
-    // Add timeouts to prevent long-hanging requests
-    connectionTimeout: 10000, // 10 seconds
-    greetingTimeout: 10000,
-    socketTimeout: 15000
-  });
-};
-
-/**
- * Send password reset email via Nodemailer
+ * Send password reset email via EmailJS REST API
  * @param {string} userEmail - Recipient email
  * @param {string} resetToken - The raw reset token
  * @returns {Promise<{ success: boolean, error?: string }>}
@@ -107,46 +86,47 @@ const createTransporter = () => {
 const sendPasswordResetEmail = async (userEmail, resetToken) => {
   console.log('[EmailService] Attempting to send password reset email to:', userEmail);
 
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.error('[EmailService] Not configured: missing EMAIL_USER or EMAIL_PASS');
-    return { success: false, error: 'SMTP not configured' };
+  if (!isConfigured()) {
+    return { success: false, error: 'EmailJS not configured' };
   }
-
-  const transporter = createTransporter();
 
   // Use CLIENT_URL from env, fallback to frontend URL for safety
   const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
   const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
 
-  const mailOptions = {
-    from: `"Square Puzzles" <${process.env.EMAIL_USER}>`,
-    to: userEmail,
-    subject: 'Password Reset Request',
-    html: `
-      <h2>Password Reset Request</h2>
-      <p>Someone requested to reset the password for your Square Puzzles account.</p>
-      <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>
-      <p>Click the link below to reset your password. This link is valid for 15 minutes.</p>
-      <a href="${resetUrl}" style="display:inline-block;padding:10px 20px;margin-top:20px;background-color:#059669;color:white;text-decoration:none;border-radius:5px;">Reset Password</a>
-      <p style="margin-top:30px;color:#666;font-size:12px;">Link not working? Paste this into your browser: <br>${resetUrl}</p>
-    `,
+  // Template variables for EmailJS Password Reset template
+  const template_params = {
+    email: userEmail,
+    to_email: userEmail,
+    link: resetUrl,
+    app_name: 'Square Puzzles',
+  };
+
+  const payload = {
+    service_id: config.serviceId,
+    template_id: config.templatePasswordReset,
+    user_id: config.publicKey,
+    accessToken: config.privateKey,
+    template_params,
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log('[EmailService] Password reset email sent:', info.messageId);
-    return { success: true };
-  } catch (err) {
-    console.error('[EmailService] Comprehensive Error Report for Password Reset:');
-    console.error(' - Error Message:', err.message);
-    console.error(' - Error Code:', err.code);
-    console.error(' - Command:', err.command);
-    console.error(' - Response:', err.response);
-    console.error(' - Host:', err.host);
-    console.error(' - Port:', err.port);
-    if (err.stack) {
-      console.error('[EmailService] Error Stack:', err.stack);
+    const response = await fetch(EMAILJS_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (response.ok) {
+      console.log('[EmailService] Password reset email sent successfully to:', userEmail);
+      return { success: true };
     }
+
+    const errorText = await response.text();
+    console.error('[EmailService] Failed to send password reset email:', response.status, errorText);
+    return { success: false, error: errorText || `HTTP ${response.status}` };
+  } catch (err) {
+    console.error('[EmailService] Error sending password reset email:', err.message);
     return { success: false, error: err.message };
   }
 };

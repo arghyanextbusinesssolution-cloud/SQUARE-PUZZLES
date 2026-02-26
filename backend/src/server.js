@@ -23,9 +23,12 @@ const startServer = async () => {
     app.listen(PORT, () => {
       console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
       console.log(`API available at http://localhost:${PORT}/api`);
-      // EmailJS status for welcome emails
+      // EmailJS status
       const emailConfigured = process.env.EMAILJS_PUBLIC_KEY && process.env.EMAILJS_PRIVATE_KEY;
-      console.log(`[EmailJS] Welcome emails: ${emailConfigured ? 'configured' : 'NOT configured (add keys to .env)'}`);
+      console.log(`[EmailJS] Configured: ${emailConfigured ? 'YES' : 'NO'}`);
+      if (emailConfigured) {
+        console.log(`[EmailJS] Service ID: ${process.env.EMAILJS_SERVICE_ID || 'service_t1l15ge'}`);
+      }
     });
   } catch (error) {
     console.error('Failed to start server:', error);
