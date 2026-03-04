@@ -89,6 +89,9 @@ export default function HistoryPage() {
     const groups: { [key: string]: HistoryItem[] } = {};
 
     history.forEach(item => {
+      // Skip in-progress items
+      if (item.status === 'incomplete') return;
+
       const date = new Date(item.puzzleId.puzzleDate);
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -195,11 +198,10 @@ export default function HistoryPage() {
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
           <StatCard label="Total" value={stats.total} bgColor="bg-gray-50" />
           <StatCard label="Completed" value={stats.completed} bgColor="bg-emerald-50" />
           <StatCard label="Attempted" value={stats.attempted} bgColor="bg-red-50" />
-          <StatCard label="In Progress" value={stats.inProgress} bgColor="bg-amber-50" />
           <StatCard label="Hints Used" value={stats.hintsUsed} bgColor="bg-blue-50" />
         </div>
 
@@ -234,16 +236,6 @@ export default function HistoryPage() {
             <HiXCircle className="w-4 h-4" />
             Attempted
           </button>
-          <button
-            onClick={() => setStatusFilter('incomplete')}
-            className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${statusFilter === 'incomplete'
-              ? 'bg-amber-500 text-white shadow-md'
-              : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
-              }`}
-          >
-            <HiClock className="w-4 h-4" />
-            In Progress
-          </button>
         </div>
 
         {/* History Content */}
@@ -269,54 +261,65 @@ export default function HistoryPage() {
           <div className="space-y-6">
             {Object.entries(filteredHistory).map(([dateKey, items]) => (
               <div key={dateKey}>
-                {/* Date Header */}
-                <div className="mb-3">
-                  <h2 className="text-lg font-bold text-gray-900">{formatDateHeader(dateKey)}</h2>
-                </div>
-
-                {/* Items for this date */}
-                <div className="space-y-2 mb-4">
+                <div className="space-y-4 mb-8">
                   {items.map((item) => (
                     <Card
                       key={item._id}
                       className={`hover:shadow-md transition-all border-l-4 ${item.status === 'correct'
                         ? 'border-l-emerald-500'
-                        : item.status === 'incorrect'
-                          ? 'border-l-red-500'
-                          : 'border-l-amber-500'
+                        : 'border-l-red-500'
                         } ${getStatusColor(item.status)}`}
                     >
-                      <CardContent className="flex items-center justify-between p-4">
-                        <div className="flex items-center gap-3 flex-1">
-                          <div className="flex-shrink-0">
-                            {getStatusIcon(item.status)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-900">
-                              {item.puzzleId.gridSize}x{item.puzzleId.gridSize} Puzzle
-                            </p>
-                            <p className="text-sm text-gray-600 truncate">
-                              {item.puzzleId.dailyMessage || 'Daily Challenge'}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 ml-4">
-                          {item.hintUsed && (
-                            <div className="text-amber-500 flex items-center gap-1" title="Hint used">
-                              <HiLightBulb className="w-4 h-4" />
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-4">
+                          {/* Left: Grid Visualization */}
+                          <div className="bg-white/40 backdrop-blur-sm p-1.5 rounded-md shadow-inner border border-white/50 shrink-0">
+                            <div
+                              className="grid gap-0.5"
+                              style={{
+                                gridTemplateColumns: `repeat(${item.puzzleId.gridSize}, minmax(0, 1fr))`,
+                                width: 'fit-content'
+                              }}
+                            >
+                              {[...Array(item.puzzleId.gridSize * item.puzzleId.gridSize)].map((_, i) => (
+                                <div
+                                  key={i}
+                                  className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-[1.5px] shadow-sm ${item.status === 'correct'
+                                    ? 'bg-emerald-500'
+                                    : 'bg-red-500'
+                                    }`}
+                                />
+                              ))}
                             </div>
-                          )}
-                          <span
-                            className={`text-sm font-semibold px-3 py-1 rounded-full ${item.status === 'correct'
-                              ? 'bg-emerald-100 text-emerald-700'
-                              : item.status === 'incorrect'
-                                ? 'bg-red-100 text-red-700'
-                                : 'bg-amber-100 text-amber-700'
-                              }`}
-                          >
-                            {getStatusText(item.status)}
-                          </span>
+                          </div>
+
+                          {/* Right: Content */}
+                          <div className="flex-1">
+                            <div className="flex justify-between items-start mb-1">
+                              <p className="font-bold text-gray-900">
+                                {formatDateHeader(dateKey)}
+                              </p>
+                              {item.hintUsed && (
+                                <div className="text-amber-500 bg-amber-100 p-1 rounded-md" title="Hint used">
+                                  <HiLightBulb className="w-3 h-3" />
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${item.status === 'correct'
+                                  ? 'bg-emerald-500 text-gray-950'
+                                  : 'bg-red-500 text-white'
+                                  }`}
+                              >
+                                {item.status === 'correct' ? 'Solved' : 'Failed'}
+                              </span>
+                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                {item.puzzleId.gridSize}x{item.puzzleId.gridSize} Word Square
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>

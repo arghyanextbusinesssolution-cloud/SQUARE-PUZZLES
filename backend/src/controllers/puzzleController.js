@@ -112,6 +112,7 @@ const checkGrid = async (req, res, next) => {
         message: result.message,
         incorrectCells: result.incorrectCells || [],
         correctCells: result.correctCells || [],
+        attempts: attempt.attempts,
         timeTakenSeconds: attempt.timeTakenSeconds || null,
         finishedAt: attempt.finishedAt || null
       }
@@ -314,6 +315,8 @@ const getShareResult = async (req, res, next) => {
       puzzleId: puzzle._id
     });
 
+    console.log(`[Share] Attempt for user ${req.user._id}:`, attempt ? { attempts: attempt.attempts, hintUsed: attempt.hintUsed } : 'No attempt');
+
     if (!attempt) {
       return res.status(404).json({
         success: false,
@@ -332,6 +335,7 @@ const getShareResult = async (req, res, next) => {
       puzzleDate: puzzle.puzzleDate,
       timeTakenSeconds: attempt.timeTakenSeconds || 0,
       hintUsed: attempt.hintUsed,
+      attempts: attempt.attempts,
       type
     });
 

@@ -41,7 +41,7 @@ export function PuzzleDemo() {
                     cellIndex = 0;
                     setFilledCells(new Set());
                     setCurrentCell(null);
-                }, 60000); // 1 minute pause
+                }, 20000); // 1 minute pause
             }
         }, 600);
 

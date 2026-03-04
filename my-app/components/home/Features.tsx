@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { HiPuzzle, HiLightningBolt, HiChartBar, HiUserGroup } from 'react-icons/hi';
+import { HiPuzzle, HiLightningBolt, HiChartBar, HiShare } from 'react-icons/hi';
 import { ReactNode } from 'react';
 
 const features = [
@@ -24,10 +24,10 @@ const features = [
         color: "bg-blue-500"
     },
     {
-        icon: <HiUserGroup className="w-8 h-8" />,
-        title: "Puzzle Archive",
-        description: "Missed a day? No problem. Access over 30+ past puzzles any time.",
-        color: "bg-purple-500"
+        icon: <HiShare className="w-8 h-8" />,
+        title: "Share Wins",
+        description: "You can post your stunning achievements here on social media.",
+        color: "bg-pink-500"
     }
 ];
 

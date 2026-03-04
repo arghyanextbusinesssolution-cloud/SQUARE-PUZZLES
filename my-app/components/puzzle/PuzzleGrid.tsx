@@ -75,28 +75,15 @@ export default function PuzzleGrid({
     return set;
   }, [highlightHintCells]);
 
-  // Memoize incorrect cells and compute affected rows/columns
-  const { incorrectCellsSet, incorrectRows, incorrectCols } = useMemo(() => {
+  // Memoize incorrect cells
+  const incorrectCellsSet = useMemo(() => {
     const cellSet = new Set<string>();
-    const rows = new Set<number>();
-    const cols = new Set<number>();
-
-    console.log('[PuzzleGrid] incorrectCells:', incorrectCells);
 
     incorrectCells.forEach(c => {
       cellSet.add(`${c.row},${c.col}`);
-      rows.add(c.row);
-      cols.add(c.col);
     });
 
-    console.log('[PuzzleGrid] incorrectRows:', Array.from(rows));
-    console.log('[PuzzleGrid] incorrectCols:', Array.from(cols));
-
-    return {
-      incorrectCellsSet: cellSet,
-      incorrectRows: rows,
-      incorrectCols: cols
-    };
+    return cellSet;
   }, [incorrectCells]);
 
   // Memoize correct cells set
@@ -117,20 +104,41 @@ export default function PuzzleGrid({
     return cols;
   }, [showHints, visibleLetters, hintCells]);
 
-  const handleChange = useCallback((row: number, col: number, value: string) => {
-    // Only allow single letter
-    const letter = value.slice(-1).toUpperCase();
-    onCellChange(row, col, letter);
+  const handleChange = useCallback((row: number, col: number, newValue: string) => {
+    // If empty, it's a delete
+    if (!newValue) {
+      onCellChange(row, col, '');
+      return;
+    }
+
+    // Get the character that was just entered
+    // If it was already 1 char and now it's 2, take the one that isn't the old one
+    const oldChar = (grid[row]?.[col] || '').toUpperCase();
+    let char = newValue.slice(-1).toUpperCase();
+
+    // If the new value is 2 chars, and the cursor was at the beginning, 
+    // the new char might be at index 0. 
+    // But since we select on focus, it usually just replaces.
+    // Let's just take the last char as a safe default for single-cell inputs.
+    if (newValue.length > 1) {
+      if (newValue[0].toUpperCase() !== oldChar) {
+        char = newValue[0].toUpperCase();
+      } else {
+        char = newValue[1].toUpperCase();
+      }
+    }
+
+    onCellChange(row, col, char);
 
     // Auto-move to next cell
-    if (letter && col < gridSize - 1) {
+    if (char && col < gridSize - 1) {
       const nextInput = inputRefs.current[row]?.[col + 1];
       const isVisibleAndShown = showHints && visibleCellsMap.has(`${row},${col + 1}`);
       if (nextInput && !isVisibleAndShown) {
         nextInput.focus();
       }
     }
-  }, [gridSize, onCellChange, visibleCellsMap, showHints]);
+  }, [gridSize, onCellChange, visibleCellsMap, showHints, grid]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent, row: number, col: number) => {
     const eventKey = e.key;
@@ -163,15 +171,6 @@ export default function PuzzleGrid({
     const isIncorrect = incorrectCellsSet.has(posKey);
     const isColumnHighlighted = hintedCols.has(col);
 
-    // Check if this cell is in an incorrect row or column (cross-hair effect)
-    const isInIncorrectRow = incorrectRows.has(row);
-    const isInIncorrectCol = incorrectCols.has(col);
-
-    // Debug logging for cells that should be highlighted
-    if (isIncorrect || isInIncorrectRow || isInIncorrectCol) {
-      console.log(`[Cell ${row},${col}] isIncorrect:${isIncorrect} isInIncorrectRow:${isInIncorrectRow} isInIncorrectCol:${isInIncorrectCol} status:${status}`);
-    }
-
     let className = 'puzzle-cell transition-all duration-300';
 
     if (isColumnHighlighted) {
@@ -193,30 +192,19 @@ export default function PuzzleGrid({
       className += ' puzzle-cell-hint ring-2 ring-amber-500/20 shadow-sm';
     }
 
-    if (status === 'correct') {
-      className += ' puzzle-cell-correct scale-[1.02] shadow-emerald-100 shadow-xl';
-    } else if (status === 'incorrect') {
-      // Priority 1: The actual incorrect cell gets the strongest highlight with shake
+    if (status) {
       if (isIncorrect) {
         className += ' puzzle-cell-incorrect animate-shake';
-        console.log(`[Cell ${row},${col}] ✓ Applied puzzle-cell-incorrect (main error cell)`);
-      }
-      // Priority 2: Cells in the same row or column get same red color (even if correct)
-      else if (isInIncorrectRow || isInIncorrectCol) {
-        className += ' puzzle-cell-incorrect';
-        console.log(`[Cell ${row},${col}] ✓ Applied cross-hair red highlight`);
-      }
-      // Priority 3: Correct cells that are NOT in incorrect rows/columns
-      else if (isCorrect) {
+      } else if (isCorrect) {
         className += ' puzzle-cell-correct';
-      }
-      else {
-        console.log(`[Cell ${row},${col}] ⚠️ NO HIGHLIGHT - isCorrect:${isCorrect} isIncorrect:${isIncorrect} isInIncorrectRow:${isInIncorrectRow} isInIncorrectCol:${isInIncorrectCol}`);
+        if (status === 'correct') {
+          className += ' scale-[1.02] shadow-emerald-100 shadow-xl';
+        }
       }
     }
 
     return className;
-  }, [visibleCellsMap, hintCellsSet, showHints, status, highlightVisibleCellsSet, highlightHintCellsSet, correctCellsSet, incorrectCellsSet, hintedCols, incorrectRows, incorrectCols]);
+  }, [visibleCellsMap, hintCellsSet, showHints, status, highlightVisibleCellsSet, highlightHintCellsSet, correctCellsSet, incorrectCellsSet, hintedCols]);
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -247,10 +235,10 @@ export default function PuzzleGrid({
                     inputRefs.current[row][col] = el;
                   }}
                   type="text"
-                  maxLength={1}
                   value={displayValue}
                   onChange={(e) => handleChange(row, col, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(e, row, col)}
+                  onFocus={(e) => e.target.select()}
                   className={getCellClassName(row, col)}
                   disabled={disabled || isVisibleAndShown}
                   readOnly={isVisibleAndShown}

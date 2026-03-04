@@ -8,9 +8,10 @@ import { HiMenu } from 'react-icons/hi';
 interface HeaderProps {
   onMenuClick?: () => void;
   showMenu?: boolean;
+  hideUser?: boolean;
 }
 
-export default function Header({ onMenuClick, showMenu = true }: HeaderProps) {
+export default function Header({ onMenuClick, showMenu = true, hideUser = false }: HeaderProps) {
   const { user, isAuthenticated } = useAuth();
 
   return (
@@ -35,30 +36,32 @@ export default function Header({ onMenuClick, showMenu = true }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-3">
-          {isAuthenticated && user ? (
-            <Link
-              href="/profile"
-              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-            >
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-medium text-sm overflow-hidden">
-                {user.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.name || user.email}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span>{(user.name || user.email).charAt(0).toUpperCase()}</span>
-                )}
-              </div>
-            </Link>
-          ) : (
-            <Link
-              href="/login"
-              className="px-4 py-2 text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
-            >
-              Sign In
-            </Link>
+          {!hideUser && (
+            isAuthenticated && user ? (
+              <Link
+                href="/profile"
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              >
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-medium text-sm overflow-hidden">
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={user.name || user.email}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span>{(user.name || user.email).charAt(0).toUpperCase()}</span>
+                  )}
+                </div>
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="px-4 py-2 text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+              >
+                Sign In
+              </Link>
+            )
           )}
         </div>
       </div>

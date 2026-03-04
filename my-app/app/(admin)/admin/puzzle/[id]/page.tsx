@@ -19,7 +19,9 @@ interface Attempt {
     email: string;
   };
   status: 'correct' | 'ongoing';
+  attempts: number;
   timeTakenSeconds: number;
+  hintUsed: boolean;
   createdAt: string;
 }
 
@@ -127,7 +129,7 @@ export default function AdminPuzzleView() {
                 grid={puzzle.solutionGrid || []}
                 visibleLetters={puzzle.visibleCells.map((c) => ({ row: c.row, col: c.col, letter: puzzle.solutionGrid?.[c.row]?.[c.col] || '' }))}
                 hintCells={puzzle.hintCells}
-                showHints={false}
+                showHints={true}
                 onCellChange={() => { }}
                 disabled={true}
               />
@@ -193,6 +195,8 @@ export default function AdminPuzzleView() {
                 <tr className="border-b border-gray-100 bg-gray-50/50">
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">User</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Checks</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Hint Used</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Time Taken</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Date</th>
                 </tr>
@@ -200,7 +204,7 @@ export default function AdminPuzzleView() {
               <tbody className="divide-y divide-gray-100">
                 {attempts.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-6 py-8 text-center text-gray-500 text-sm">
+                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500 text-sm">
                       No users have attempted this puzzle yet.
                     </td>
                   </tr>
@@ -221,6 +225,20 @@ export default function AdminPuzzleView() {
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
                             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                             Ongoing
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        {attempt.attempts || 0}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {attempt.hintUsed ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-700">
+                            Yes
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                            No
                           </span>
                         )}
                       </td>

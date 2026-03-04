@@ -160,7 +160,18 @@ const getPuzzle = async (req, res, next) => {
  */
 const updatePuzzle = async (req, res, next) => {
   try {
-    const { gridSize, words, visibleCells, hintCells, dailyMessage, isActive, acrossClues, downClues } = req.body;
+    const {
+      gridSize,
+      words,
+      visibleCells,
+      hintCells,
+      dailyMessage,
+      isActive,
+      acrossClues,
+      downClues,
+      puzzleDate,
+      solutionGrid
+    } = req.body;
 
     let puzzle = await Puzzle.findById(req.params.id);
 
@@ -171,8 +182,65 @@ const updatePuzzle = async (req, res, next) => {
       });
     }
 
-    // If words or gridSize changed, rebuild solution grid
-    if (words || gridSize) {
+    const now = new Date();
+    const puzzleScheduledDate = new Date(puzzle.puzzleDate);
+    const millisecondsUntilPublished = puzzleScheduledDate.getTime() - now.getTime();
+    const hoursUntilPublished = millisecondsUntilPublished / (1000 * 60 * 60);
+
+    // If puzzle is already published (past its date), block most edits
+    if (hoursUntilPublished <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Cannot edit a puzzle that has already been published'
+      });
+    }
+
+    // Logic for "48 hours before" or "within 48 hours"
+    // Requirement was specific about what can be changed within 48 hours.
+    // If it's more than 48 hours away, admin has full access.
+    // Actually, the user list of "admin can only change" seems to cover ALMOST everything (clues, letters, date, hints, message).
+    // Let's refine based on the prompt: 
+    // "the admin can pnly chaneg the clues , the letters from teh puzzle , the published date ... the hints celles and visible celles , and also the daily message"
+
+    // Check if puzzleDate is changed and if it collides/is future
+    if (puzzleDate) {
+      const newDate = new Date(puzzleDate);
+
+      // Validate future date
+      if (newDate <= now) {
+        return res.status(400).json({
+          success: false,
+          error: 'Publication date must be in the future'
+        });
+      }
+
+      // Check for collision (excluding current puzzle)
+      const collision = await Puzzle.findOne({
+        _id: { $ne: puzzle._id },
+        puzzleDate: {
+          $gte: new Date(new Date(newDate).setHours(0, 0, 0, 0)),
+          $lt: new Date(new Date(newDate).setHours(23, 59, 59, 999))
+        }
+      });
+
+      if (collision) {
+        return res.status(400).json({
+          success: false,
+          error: 'A puzzle already exists for this date'
+        });
+      }
+
+      puzzle.puzzleDate = newDate;
+    }
+
+    // Handle grid/word updates
+    // Priority: If solutionGrid is provided directly, use it.
+    // Otherwise, if words or gridSize changed, rebuild it.
+    if (solutionGrid) {
+      puzzle.solutionGrid = solutionGrid;
+      if (gridSize) puzzle.gridSize = gridSize;
+      if (words) puzzle.words = words;
+    } else if (words || gridSize) {
       const newGridSize = gridSize || puzzle.gridSize;
       const newWords = words || puzzle.words;
 

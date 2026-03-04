@@ -46,7 +46,6 @@ export function LandingHero() {
 
                     <p className="text-base sm:text-lg md:text-xl text-gray-400 mb-8 sm:mb-10 leading-relaxed">
                         The addictive daily word puzzle that tests your vocabulary and logic.
-                        Join <span className="text-white font-bold">14,000+</span> players solving today's grid.
                     </p>
 
                     {/* CTAs */}

@@ -145,11 +145,9 @@ const compareGrids = (userGrid, solutionGrid) => {
       cellsChecked++;
 
       if (!userLetter) {
-        console.log(`[Puzzle] Empty cell found at (${row}, ${col}), expected: ${solutionLetter}`);
         allFilled = false;
-        incorrectCells.push({ row, col });
+        // Do not add to incorrectCells if it's Just empty
       } else if (userLetter !== solutionLetter) {
-        console.log(`[Puzzle] Wrong letter at (${row}, ${col}): got "${userLetter}", expected "${solutionLetter}"`);
         allCorrect = false;
         incorrectCells.push({ row, col });
       } else {
@@ -161,14 +159,13 @@ const compareGrids = (userGrid, solutionGrid) => {
 
   console.log(`[Puzzle] Grid check: ${cellsChecked} cells checked, allFilled: ${allFilled}, allCorrect: ${allCorrect}`);
   console.log(`[Puzzle] incorrectCells:`, incorrectCells);
-  console.log(`[Puzzle] correctCells:`, correctCells);
-
-  if (!allFilled) {
-    return { status: 'incomplete', message: 'Please fill in all cells', incorrectCells, correctCells };
-  }
 
   if (!allCorrect) {
-    return { status: 'incorrect', message: 'Some letters are incorrect. Keep trying!', incorrectCells, correctCells };
+    return { status: 'incorrect', message: 'Keep trying! Some letters aren\'t quite right.', incorrectCells, correctCells };
+  }
+
+  if (!allFilled) {
+    return { status: 'incomplete', message: 'Looking good! All letters entered so far are correct.', incorrectCells: [], correctCells };
   }
 
   return { status: 'correct', message: 'Congratulations! You solved the puzzle!', incorrectCells: [], correctCells };
@@ -185,7 +182,7 @@ const compareGrids = (userGrid, solutionGrid) => {
  * @param {string} options.type - Type of share: 'performance' or 'solution'
  * @returns {string} - Formatted text for clipboard
  */
-const generateClipboardText = ({ solutionGrid, userGrid, hintCells, puzzleDate, timeTakenSeconds, hintUsed, type = 'performance' }) => {
+const generateClipboardText = ({ solutionGrid, userGrid, hintCells, puzzleDate, timeTakenSeconds, hintUsed, attempts, type = 'performance' }) => {
   const dateStr = new Date(puzzleDate).toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -217,8 +214,10 @@ const generateClipboardText = ({ solutionGrid, userGrid, hintCells, puzzleDate, 
   }
 
   // DEFAULT: Performance Share (Emoji Grid)
-  let text = `WORD SQUARES - ${dateStr}\n`;
-  text += `Solved in: ${formatTime(timeTakenSeconds)}\n\n`;
+  let text = `WORD SQUARES [V3] - ${dateStr}\n`;
+  text += `Solved in: ${formatTime(timeTakenSeconds)}\n`;
+  text += `Checked Answer: ${attempts || 0} times\n`;
+  text += `Hint Used: ${hintUsed ? 'Yes' : 'No'}\n\n`;
 
   const hintPositions = new Set(
     (hintCells || []).map(cell => `${cell.row},${cell.col}`)

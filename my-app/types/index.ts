@@ -64,6 +64,7 @@ export interface PuzzleAttempt {
   currentGrid: string[][];
   hintUsed: boolean;
   status: 'incomplete' | 'correct' | 'incorrect';
+  attempts: number;
 }
 
 export interface PuzzleData {
@@ -74,6 +75,7 @@ export interface PuzzleData {
 export interface CheckResult {
   status: 'incomplete' | 'correct' | 'incorrect';
   message: string;
+  attempts?: number;
   incorrectCells?: CellPosition[];
   correctCells?: CellPosition[];
 }

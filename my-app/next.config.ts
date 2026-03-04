@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
 
   // Experimental
   experimental: {
-    optimizePackageImports: ["react-icons"],
+    // optimizePackageImports: ["react-icons"],
   },
 };
 

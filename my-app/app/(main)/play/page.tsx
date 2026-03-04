@@ -64,7 +64,7 @@ export default function PlayPage() {
           // Restore previous attempt if exists
           if (response.attempt) {
             setGrid(response.attempt.currentGrid || initialGrid);
-            setShowHints(response.attempt.hintUsed); // Restore hint state
+            // setShowHints(response.attempt.hintUsed); // Keep hints hidden on reload per user request
             setStartedAt(response.attempt.startedAt || null);
             if (response.attempt.status === 'correct') {
               setStatus('correct');
@@ -155,13 +155,24 @@ export default function PlayPage() {
 
     setIsChecking(true);
     try {
-      // Merge visible letters and hint cells into the grid before checking
+      // 1. Check if user has entered any letters
+      const hasUserLetters = grid.some(row => row.some(cell => cell.trim() !== ''));
+      if (!hasUserLetters) {
+        setSystemMessage('Please put one letter at least');
+        setStatus('incomplete');
+        setIsChecking(false);
+        return;
+      }
+
+      // 2. Merge visible letters and hint cells into the grid before checking
       const gridToCheck = grid.map(row => [...row]);
 
-      // Add visible letters
-      visibleLetters.forEach(vl => {
-        gridToCheck[vl.row][vl.col] = vl.letter;
-      });
+      // Add visible letters ONLY if hints are currently shown
+      if (showHints) {
+        visibleLetters.forEach(vl => {
+          gridToCheck[vl.row][vl.col] = vl.letter;
+        });
+      }
 
       // Add hint letters if hints were used
       if (showHints) {
@@ -306,9 +317,9 @@ export default function PlayPage() {
           <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <HiCalendar className="w-10 h-10 text-gray-400" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">No Puzzle Today</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Today&apos;s puzzle has not been published yet.</h2>
           <p className="text-gray-600 mb-6">
-            Check back later for today&apos;s puzzle, or try yesterday&apos;s puzzle.
+            Please check back later.
           </p>
           <Button onClick={() => window.location.reload()}>
             <HiRefresh className="w-5 h-5 mr-2" />

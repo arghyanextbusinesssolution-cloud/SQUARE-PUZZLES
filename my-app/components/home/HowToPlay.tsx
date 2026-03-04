@@ -6,8 +6,8 @@ import { Grid, Hand, Lightbulb, Trophy } from 'lucide-react';
 const steps = [
     {
         id: 1,
-        title: "4x4 , set of clues",
-        description: "You're given a 4x4 empty board and a set of words.",
+        title: "4x4 , Not your usual clues",
+        description: "You're given a 4x4 empty board and a set of tricky clues.",
         icon: <Grid className="w-6 h-6" />,
         color: "bg-blue-500",
         shadow: "shadow-blue-500/50"
