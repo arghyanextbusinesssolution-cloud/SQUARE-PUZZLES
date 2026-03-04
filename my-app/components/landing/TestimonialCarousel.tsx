@@ -2,38 +2,28 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Quote, Star, ChevronLeft, ChevronRight, User } from 'lucide-react';
+import { Quote, ChevronLeft, ChevronRight, User } from 'lucide-react';
 
 const TESTIMONIALS = [
     {
         id: 1,
-        name: "Alex 'WordWhiz' K.",
-        text: "I used to play Wordle, but Word Squares takes it to another level. The grid mechanics add such a satisfying layer of strategy. 100+ day streak!",
-        rating: 5
+        name: "Natalie W.",
+        text: "4 across was tricky but I've learnt something new today! Thoroughly enjoyed this!"
     },
     {
         id: 2,
-        name: "Sarah J.",
-        text: "The UI is stunning. It feels less like a website and more like a high-end app. I love the daily stats and competing with my friends.",
-        rating: 5
+        name: "Sarah F.",
+        text: "Thanks for the game! Fun puzzle. Thank you. I'm looking forward to the app."
     },
     {
         id: 3,
-        name: "Davide R.",
-        text: "Best morning routine ever. Takes me about 5 minutes, wakes up my brain, and the design is just chef's kiss. Highly recommend.",
-        rating: 5
+        name: "Craig B.",
+        text: "These are quite fun, and an app would be kinda cool. Thanks for the effort you put in."
     },
     {
         id: 4,
-        name: "Emily W.",
-        text: "So addictive! I love how the difficulty ramps up throughout the week. The hints system is actually helpful without giving it away.",
-        rating: 5
-    },
-    {
-        id: 5,
-        name: "Marcus T.",
-        text: "Finally, a word game that actually challenges you. The 5x5 grid means you have to think in two dimensions. Brilliant concept.",
-        rating: 5
+        name: "Erin",
+        text: "That one took me at least 30 minutes. It was tricky. Lots of back and forth and head scratching. I almost gave up."
     }
 ];
 
@@ -132,11 +122,6 @@ export function TestimonialCarousel() {
                                             </div>
                                             <div>
                                                 <h4 className="font-bold text-white text-lg tracking-tight">{testimonial.name}</h4>
-                                                <div className="flex gap-0.5 mt-1">
-                                                    {[...Array(testimonial.rating)].map((_, i) => (
-                                                        <Star key={i} size={12} className="fill-yellow-400 text-yellow-400" />
-                                                    ))}
-                                                </div>
                                             </div>
                                         </div>
 
@@ -159,11 +144,6 @@ export function TestimonialCarousel() {
                             </div>
                             <div>
                                 <h4 className="font-bold text-white">{TESTIMONIALS[activeIndex].name}</h4>
-                                <div className="flex gap-0.5 mt-0.5">
-                                    {[...Array(TESTIMONIALS[activeIndex].rating)].map((_, i) => (
-                                        <Star key={i} size={10} className="fill-yellow-400 text-yellow-400" />
-                                    ))}
-                                </div>
                             </div>
                         </div>
                         <p className="text-gray-300 mb-2 italic">"{TESTIMONIALS[activeIndex].text}"</p>

@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 
 // Define the puzzle structure with clues and column headers
 const COLUMN_HEADERS = ['Tea', 'Assistance', 'Assister', 'Attempts'];
-const ROW_CLUES = ['Converse', 'Fur', 'Little Andrew', 'March 15'];
+const ROW_CLUES = ['Converse', 'Fur', 'Lil\'Andrew', 'March 15'];
 
 // Map grid positions: (row, col) -> letter
 const GRID_LETTERS = [

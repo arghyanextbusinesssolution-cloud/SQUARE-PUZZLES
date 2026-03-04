@@ -34,19 +34,24 @@ export function LandingHero() {
                                 <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="3" fill="none" />
                             </svg>
                         </span>
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.4 }}
-                            className="flex items-center gap-2 sm:gap-3 mt-4 sm:mt-6"
-                        >
-                            <img src="/logo2.png" alt="Logo" className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-lg shadow-xl border border-white/5" />
-                        </motion.div>
                     </h1>
 
-                    <p className="text-base sm:text-lg md:text-xl text-gray-400 mb-8 sm:mb-10 leading-relaxed">
-                        The addictive daily word puzzle that tests your vocabulary and logic.
-                    </p>
+                    {/* Logo & Text Column Layout */}
+                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-8 sm:mb-10">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.4 }}
+                            className="flex-shrink-0"
+                        >
+                            <img src="/logo2.png" alt="Logo" className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-2xl shadow-2xl border border-white/10" />
+                        </motion.div>
+
+                        <p className="text-base sm:text-lg md:text-xl text-gray-400 leading-relaxed text-center sm:text-left">
+                            The addictive daily word puzzle that tests your vocabulary and logic.
+                            Challenge yourself with a new grid every day and track your performance!
+                        </p>
+                    </div>
 
                     {/* CTAs */}
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-12 sm:mb-16">
