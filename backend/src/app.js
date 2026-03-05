@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -89,6 +90,20 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/user', userRoutes);
 // app.use('/api/announcements', announcementRoutes);
 app.use('/api/settings', publicSettingsRoutes);
+
+// Static file serving from Next.js export
+// Note: We use a 'public' folder inside backend for better compatibility with shared hosting
+const frontendPath = path.join(__dirname, '../public');
+app.use(express.static(frontendPath));
+
+// Catch-all route for Next.js (client-side routing)
+app.get('*', (req, res, next) => {
+  // If it's an API route that wasn't matched above, let it fall through to 404
+  if (req.path.startsWith('/api/')) {
+    return next();
+  }
+  res.sendFile(path.join(frontendPath, 'index.html'));
+});
 
 
 // 404 handler

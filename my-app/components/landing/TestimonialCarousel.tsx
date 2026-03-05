@@ -24,7 +24,8 @@ const TESTIMONIALS = [
         id: 4,
         name: "Erin",
         text: "That one took me at least 30 minutes. It was tricky. Lots of back and forth and head scratching. I almost gave up."
-    }
+    },
+    
 ];
 
 export function TestimonialCarousel() {

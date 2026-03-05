@@ -24,3 +24,7 @@ Thumbs.db
 # Build output
 dist/
 build/
+
+# Ignore frontend build files within backend (served by Express)
+public/*
+!public/.gitkeep

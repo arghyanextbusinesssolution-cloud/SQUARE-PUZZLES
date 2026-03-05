@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "seed:admin": "node scripts/seedAdmin.js"
+    "seed:admin": "node scripts/seedAdmin.js",
+    "build": "cd ../my-app && npm install && npm run build && cd ../backend && mkdir -p public && cp -rf ../my-app/out/* public/"
   },
   "keywords": [
     "puzzle",
