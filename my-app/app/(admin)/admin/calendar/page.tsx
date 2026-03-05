@@ -64,17 +64,17 @@ export default function PuzzleCalendarPage() {
     return new Date(year, month, 1).getDay();
   };
 
-  const getLocalDateString = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+  const getUTCDateString = (date: Date) => {
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   };
 
   const getPuzzleForDate = (date: Date) => {
-    const dateStr = getLocalDateString(date);
+    const dateStr = getUTCDateString(date);
     return puzzles.find(p => {
-      const puzzleDate = getLocalDateString(new Date(p.puzzleDate));
+      const puzzleDate = getUTCDateString(new Date(p.puzzleDate));
       return puzzleDate === dateStr;
     });
   };
@@ -180,9 +180,9 @@ export default function PuzzleCalendarPage() {
 
               {/* Days of the month */}
               {days.map(day => {
-                const date = new Date(selectedYear, selectedMonth, day);
+                const date = new Date(Date.UTC(selectedYear, selectedMonth, day));
                 const puzzle = getPuzzleForDate(date);
-                const isToday = date.toDateString() === new Date().toDateString();
+                const isToday = getUTCDateString(date) === getUTCDateString(new Date());
                 const isPast = date < new Date() && !isToday;
 
                 return (
@@ -274,7 +274,7 @@ export default function PuzzleCalendarPage() {
                   className="w-full"
                   onClick={() => {
                     if (selectedDate) {
-                      const dateStr = getLocalDateString(selectedDate);
+                      const dateStr = getUTCDateString(selectedDate);
                       router.push(`/admin/create?date=${dateStr}`);
                     }
                   }}
