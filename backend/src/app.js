@@ -1,5 +1,4 @@
 const express = require('express');
-const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -15,8 +14,6 @@ const userRoutes = require('./routes/user');
 // const announcementRoutes = require('./routes/announcement');
 const publicSettingsRoutes = require('./routes/publicSettings');
 
-
-
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
 
@@ -31,13 +28,9 @@ const allowedOrigins = FRONTEND_URL.split(',').map(s => s.trim());
 
 app.use(cors({
   origin: function (origin, callback) {
-    // If no origin (e.g. server-to-server requests or tools), allow
     if (!origin) return callback(null, true);
-    // Allow wildcard
     if (allowedOrigins.includes('*')) return callback(null, true);
-    // Allow if origin is in the whitelist
     if (allowedOrigins.includes(origin)) return callback(null, true);
-    // Otherwise, reject (don't throw — just deny CORS and log for debugging)
     console.warn(`Blocked CORS request from origin: ${origin}`);
     return callback(null, false);
   },
@@ -48,16 +41,16 @@ app.use(cors({
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   message: { error: 'Too many requests, please try again later.' }
 });
 app.use('/api/', limiter);
 
-// Auth-specific rate limiting (stricter)
+// Auth-specific rate limiting
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10, // 10 attempts per 15 minutes
+  max: 10,
   message: { error: 'Too many authentication attempts, please try again later.' }
 });
 app.use('/api/auth/login', authLimiter);
@@ -68,12 +61,12 @@ app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Logging (only in development)
+// Logging
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-// Health check endpoint
+// Health check
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
@@ -88,23 +81,7 @@ app.use('/api/puzzle', puzzleRoutes);
 app.use('/api/attempt', attemptRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/user', userRoutes);
-// app.use('/api/announcements', announcementRoutes);
 app.use('/api/settings', publicSettingsRoutes);
-
-// Static file serving from Next.js export
-// Note: We use a 'public' folder inside backend for better compatibility with shared hosting
-const frontendPath = path.join(__dirname, '../public');
-app.use(express.static(frontendPath));
-
-// Catch-all route for Next.js (client-side routing)
-app.get('*', (req, res, next) => {
-  // If it's an API route that wasn't matched above, let it fall through to 404
-  if (req.path.startsWith('/api/')) {
-    return next();
-  }
-  res.sendFile(path.join(frontendPath, 'index.html'));
-});
-
 
 // 404 handler
 app.use((req, res, next) => {
