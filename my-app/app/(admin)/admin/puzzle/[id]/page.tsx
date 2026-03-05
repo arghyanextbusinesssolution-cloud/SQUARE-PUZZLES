@@ -110,7 +110,7 @@ export default function AdminPuzzleView() {
             <div className="flex justify-between items-start gap-4 mb-4">
               <div>
                 <p className="text-lg font-medium">
-                  {new Date(puzzle.puzzleDate).toLocaleDateString()}
+                  {new Date(puzzle.puzzleDate).toLocaleDateString('en-US', { timeZone: 'UTC' })}
                 </p>
                 <p className="text-sm text-gray-500">{puzzle.gridSize} x {puzzle.gridSize}</p>
               </div>

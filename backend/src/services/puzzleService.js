@@ -187,7 +187,8 @@ const generateClipboardText = ({ solutionGrid, userGrid, hintCells, puzzleDate, 
     weekday: 'long',
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
+    timeZone: 'UTC'
   });
 
   const formatTime = (secs) => {

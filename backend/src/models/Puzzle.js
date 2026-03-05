@@ -67,7 +67,7 @@ const puzzleSchema = new mongoose.Schema({
     type: [wordSchema],
     required: true,
     validate: {
-      validator: function(v) {
+      validator: function (v) {
         return v && v.length > 0;
       },
       message: 'At least one word is required'
@@ -113,35 +113,35 @@ const puzzleSchema = new mongoose.Schema({
 puzzleSchema.index({ puzzleDate: 1 });
 puzzleSchema.index({ createdBy: 1 });
 
-// Virtual to check if puzzle is for today
-puzzleSchema.virtual('isToday').get(function() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+// Virtual to check if puzzle is for today (UTC)
+puzzleSchema.virtual('isToday').get(function () {
+  const now = new Date();
+  const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   const puzzleDay = new Date(this.puzzleDate);
-  puzzleDay.setHours(0, 0, 0, 0);
-  return today.getTime() === puzzleDay.getTime();
+  const puzzleDayUTC = new Date(Date.UTC(puzzleDay.getUTCFullYear(), puzzleDay.getUTCMonth(), puzzleDay.getUTCDate()));
+  return todayUTC.getTime() === puzzleDayUTC.getTime();
 });
 
-// Static method to get today's puzzle
-puzzleSchema.statics.getTodaysPuzzle = async function() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  
+// Static method to get today's puzzle (UTC)
+puzzleSchema.statics.getTodaysPuzzle = async function () {
+  const now = new Date();
+  const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+  const tomorrow = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+
   return this.findOne({
     puzzleDate: { $gte: today, $lt: tomorrow },
     isActive: true
   });
 };
 
-// Static method to get yesterday's puzzle
-puzzleSchema.statics.getYesterdaysPuzzle = async function() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-  
+// Static method to get yesterday's puzzle (UTC)
+puzzleSchema.statics.getYesterdaysPuzzle = async function () {
+  const now = new Date();
+  const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+  const yesterday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+
   return this.findOne({
     puzzleDate: { $gte: yesterday, $lt: today },
     isActive: true
@@ -149,7 +149,7 @@ puzzleSchema.statics.getYesterdaysPuzzle = async function() {
 };
 
 // Method to get puzzle data without solution
-puzzleSchema.methods.getSafeData = function() {
+puzzleSchema.methods.getSafeData = function () {
   return {
     _id: this._id,
     puzzleDate: this.puzzleDate,
@@ -161,10 +161,10 @@ puzzleSchema.methods.getSafeData = function() {
 };
 
 // Method to get visible letters from solution
-puzzleSchema.methods.getVisibleLetters = function() {
+puzzleSchema.methods.getVisibleLetters = function () {
   const visibleLetters = [];
   if (!this.solutionGrid) return visibleLetters;
-  
+
   for (const cell of this.visibleCells) {
     if (this.solutionGrid[cell.row] && this.solutionGrid[cell.row][cell.col]) {
       visibleLetters.push({

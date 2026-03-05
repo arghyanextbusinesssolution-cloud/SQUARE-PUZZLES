@@ -43,8 +43,9 @@ export default function AdminPuzzleEdit() {
   const { isPublished, isRestricted } = useMemo(() => {
     if (!puzzle) return { isPublished: false, isRestricted: false };
     const now = new Date();
+    const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
     const scheduled = new Date(puzzle.puzzleDate);
-    const diff = scheduled.getTime() - now.getTime();
+    const diff = scheduled.getTime() - nowUTC.getTime();
     return {
       isPublished: diff <= 0,
       isRestricted: diff > 0 && diff < (48 * 60 * 60 * 1000)

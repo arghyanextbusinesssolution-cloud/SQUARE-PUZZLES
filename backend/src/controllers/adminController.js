@@ -10,11 +10,15 @@ const createPuzzle = async (req, res, next) => {
   try {
     const { puzzleDate, gridSize, words, visibleCells, hintCells, dailyMessage, acrossClues, downClues } = req.body;
 
-    // Check if puzzle already exists for this date
+    // Check if puzzle already exists for this date (using UTC boundaries)
+    const date = new Date(puzzleDate);
+    const startOfDay = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0, 0));
+    const endOfDay = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 23, 59, 59, 999));
+
     const existingPuzzle = await Puzzle.findOne({
       puzzleDate: {
-        $gte: new Date(new Date(puzzleDate).setHours(0, 0, 0, 0)),
-        $lt: new Date(new Date(puzzleDate).setHours(23, 59, 59, 999))
+        $gte: startOfDay,
+        $lt: endOfDay
       }
     });
 
@@ -40,9 +44,9 @@ const createPuzzle = async (req, res, next) => {
       });
     }
 
-    // Create puzzle
+    // Create puzzle - Ensure puzzleDate is stored at UTC midnight
     const puzzle = await Puzzle.create({
-      puzzleDate: new Date(puzzleDate),
+      puzzleDate: startOfDay,
       gridSize,
       solutionGrid: validation.solutionGrid,
       words,
@@ -204,13 +208,18 @@ const updatePuzzle = async (req, res, next) => {
 
     // Check if puzzleDate is changed and if it collides/is future
     if (puzzleDate) {
-      const newDate = new Date(puzzleDate);
+      const d = new Date(puzzleDate);
+      const startOfDay = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0));
+      const endOfDay = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 23, 59, 59, 999));
 
-      // Validate future date
-      if (newDate <= now) {
+      // Validate future date (compare with current UTC time, start of day)
+      const now = new Date();
+      const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+
+      if (startOfDay < todayUTC) {
         return res.status(400).json({
           success: false,
-          error: 'Publication date must be in the future'
+          error: 'Publication date must be today or in the future'
         });
       }
 
@@ -218,8 +227,8 @@ const updatePuzzle = async (req, res, next) => {
       const collision = await Puzzle.findOne({
         _id: { $ne: puzzle._id },
         puzzleDate: {
-          $gte: new Date(new Date(newDate).setHours(0, 0, 0, 0)),
-          $lt: new Date(new Date(newDate).setHours(23, 59, 59, 999))
+          $gte: startOfDay,
+          $lt: endOfDay
         }
       });
 
@@ -230,7 +239,7 @@ const updatePuzzle = async (req, res, next) => {
         });
       }
 
-      puzzle.puzzleDate = newDate;
+      puzzle.puzzleDate = startOfDay;
     }
 
     // Handle grid/word updates

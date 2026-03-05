@@ -118,6 +118,7 @@ export default function ManagePuzzlesPage() {
     // Filter by date
     if (dateFilter) {
       filtered = filtered.filter((puzzle) => {
+        // Use UTC for date comparison to avoid timezone shifts
         const puzzleDate = new Date(puzzle.puzzleDate).toISOString().split('T')[0];
         return puzzleDate === dateFilter;
       });
@@ -130,14 +131,16 @@ export default function ManagePuzzlesPage() {
 
   const getPuzzleStatus = (puzzleDate: string) => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Use UTC date for "today"
+    const todayUTC = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
 
     const puzzleDateObj = new Date(puzzleDate);
-    puzzleDateObj.setHours(0, 0, 0, 0);
+    // Standardize to UTC midnight for comparison
+    const targetDateUTC = new Date(Date.UTC(puzzleDateObj.getUTCFullYear(), puzzleDateObj.getUTCMonth(), puzzleDateObj.getUTCDate()));
 
-    if (puzzleDateObj > today) {
+    if (targetDateUTC > todayUTC) {
       return { status: 'Incoming', color: 'bg-blue-100 text-blue-700' };
-    } else if (puzzleDateObj.getTime() === today.getTime()) {
+    } else if (targetDateUTC.getTime() === todayUTC.getTime()) {
       return { status: 'Active', color: 'bg-green-100 text-green-700' };
     } else {
       return { status: 'Closed', color: 'bg-gray-100 text-gray-700' };
@@ -340,6 +343,7 @@ export default function ManagePuzzlesPage() {
                               month: 'short',
                               day: 'numeric',
                               year: 'numeric',
+                              timeZone: 'UTC',
                             })}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-700 max-w-xs truncate">

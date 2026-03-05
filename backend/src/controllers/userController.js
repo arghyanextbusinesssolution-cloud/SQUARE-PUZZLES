@@ -105,46 +105,43 @@ const getStreak = async (req, res, next) => {
     let lastDate = null;
     let isCurrentChain = true;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+    const now = new Date();
+    const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const yesterdayUTC = new Date(todayUTC);
+    yesterdayUTC.setUTCDate(yesterdayUTC.getUTCDate() - 1);
 
     for (const attempt of completedAttempts) {
       if (!attempt.puzzleId) continue;
 
-      const puzzleDate = new Date(attempt.puzzleId.puzzleDate);
-      puzzleDate.setHours(0, 0, 0, 0);
+      const d = new Date(attempt.puzzleId.puzzleDate);
+      const puzzleDateUTC = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
 
       if (!lastDate) {
         tempStreak = 1;
-        lastDate = puzzleDate;
+        lastDate = puzzleDateUTC;
 
-        // If the newest solve is today, tomorrow, or even further in the future, it's a current streak
-        // Also allow yesterday if they haven't solved today's puzzle yet
-        if (puzzleDate >= yesterday) {
+        // Using UTC comparison
+        if (puzzleDateUTC >= yesterdayUTC) {
           currentStreak = 1;
         } else {
           isCurrentChain = false;
         }
       } else {
-        const diffMs = lastDate.getTime() - puzzleDate.getTime();
+        const diffMs = lastDate.getTime() - puzzleDateUTC.getTime();
         const dayDiff = Math.round(diffMs / (1000 * 60 * 60 * 24));
 
         if (dayDiff === 1) {
           tempStreak++;
           if (isCurrentChain) currentStreak++;
         } else if (dayDiff === 0) {
-          // Already counted this day (multiple puzzles for same day)
           continue;
         } else {
-          // Gap found
           maxStreak = Math.max(maxStreak, tempStreak);
           tempStreak = 1;
           isCurrentChain = false;
         }
 
-        lastDate = puzzleDate;
+        lastDate = puzzleDateUTC;
       }
     }
 

@@ -47,8 +47,10 @@ export default function CalendarPage() {
           if (response.success) {
             const dateMap = new Map<string, string>();
             response.data.forEach((item) => {
-              const date = new Date(item.puzzleId.puzzleDate).toDateString();
-              dateMap.set(date, item.status);
+              // Convert to UTC YYYY-MM-DD for consistent mapping
+              const d = new Date(item.puzzleId.puzzleDate);
+              const dateKey = d.toISOString().split('T')[0];
+              dateMap.set(dateKey, item.status);
             });
             setCompletedDates(dateMap);
           }
@@ -71,6 +73,10 @@ export default function CalendarPage() {
     const days: CalendarDay[] = [];
 
     // Add days from previous month to fill the first week
+    // Helper for date key
+    const getDateKey = (d: Date) => d.toISOString().split('T')[0];
+
+    // Add days from previous month to fill the first week
     const startingDay = firstDay.getDay();
     for (let i = startingDay - 1; i >= 0; i--) {
       const d = new Date(year, month, -i);
@@ -78,7 +84,7 @@ export default function CalendarPage() {
         date: d,
         isCurrentMonth: false,
         isToday: false,
-        status: completedDates.get(d.toDateString()) as CalendarDay['status'],
+        status: completedDates.get(getDateKey(d)) as CalendarDay['status'],
       });
     }
 
@@ -88,8 +94,8 @@ export default function CalendarPage() {
       days.push({
         date: d,
         isCurrentMonth: true,
-        isToday: d.toDateString() === today.toDateString(),
-        status: completedDates.get(d.toDateString()) as CalendarDay['status'],
+        isToday: getDateKey(d) === getDateKey(today),
+        status: completedDates.get(getDateKey(d)) as CalendarDay['status'],
       });
     }
 
@@ -101,7 +107,7 @@ export default function CalendarPage() {
         date: d,
         isCurrentMonth: false,
         isToday: false,
-        status: completedDates.get(d.toDateString()) as CalendarDay['status'],
+        status: completedDates.get(getDateKey(d)) as CalendarDay['status'],
       });
     }
 

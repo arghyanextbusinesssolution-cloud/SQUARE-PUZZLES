@@ -138,11 +138,11 @@ export default function CreatePuzzlePage() {
           setDownClues(data.downClues || []);
         } catch (e) {
           console.error('Failed to load puzzle data:', e);
-          if (!urlDate || (new Date(urlDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0))) {
+          if (!urlDate) {
             setPuzzleDate(new Date().toISOString().split('T')[0]);
           }
         }
-      } else if (!urlDate || (new Date(urlDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0))) {
+      } else if (!urlDate) {
         // Set default date to today if no saved data
         setPuzzleDate(new Date().toISOString().split('T')[0]);
       }

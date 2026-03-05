@@ -61,8 +61,10 @@ export default function HistoryPage() {
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
             const filteredHistory = response.data.filter(item => {
-              const itemDate = new Date(item.puzzleId.puzzleDate);
-              return itemDate >= thirtyDaysAgo;
+              const puzzleDate = new Date(item.puzzleId.puzzleDate);
+              const puzzleDateUTC = new Date(Date.UTC(puzzleDate.getUTCFullYear(), puzzleDate.getUTCMonth(), puzzleDate.getUTCDate()));
+              const thirtyDaysAgoUTC = new Date(Date.UTC(thirtyDaysAgo.getUTCFullYear(), thirtyDaysAgo.getUTCMonth(), thirtyDaysAgo.getUTCDate()));
+              return puzzleDateUTC >= thirtyDaysAgoUTC;
             });
 
             // Sort by date descending (newest first)
@@ -93,9 +95,9 @@ export default function HistoryPage() {
       if (item.status === 'incomplete') return;
 
       const date = new Date(item.puzzleId.puzzleDate);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
+      const year = date.getUTCFullYear();
+      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(date.getUTCDate()).padStart(2, '0');
       const key = `${year}-${month}-${day}`;
 
       if (!groups[key]) {
@@ -177,11 +179,13 @@ export default function HistoryPage() {
   };
 
   const formatDateHeader = (dateString: string) => {
-    const date = new Date(dateString + 'T00:00:00');
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       month: 'short',
       day: 'numeric',
+      timeZone: 'UTC'
     });
   };
 
