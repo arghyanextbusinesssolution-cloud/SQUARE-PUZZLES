@@ -64,7 +64,6 @@ try {
     }
 
     // 3. Copy frontend output to backend/public
-    outDir = path.join(rootDir, 'my-app', 'out');
     console.log(`Copying files from ${outDir} to ${publicDir}...`);
 
     // Polyfill for recursive copy if needed, but fs.cpSync is available in modern Node
