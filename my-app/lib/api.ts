@@ -1,5 +1,5 @@
 // Local: .env.local or default localhost. Production (hosted on Render): use Render backend URL.
-const PRODUCTION_API_URL = 'https://square-puzzles-backend.onrender.com/api';
+const PRODUCTION_API_URL = '/api';
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ??
   (process.env.NODE_ENV === 'production' ? PRODUCTION_API_URL : 'http://localhost:5000/api');
