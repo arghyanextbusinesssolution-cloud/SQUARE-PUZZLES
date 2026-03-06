@@ -1,7 +1,7 @@
 import AdminPuzzleViewClient from './AdminPuzzleViewClient';
 
 export const dynamic = 'force-static';
-export const dynamicParams = true;
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
   return [{ id: 'default' }];
