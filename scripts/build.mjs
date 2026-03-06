@@ -18,7 +18,14 @@ function run(command, cwd = rootDir, env = {}) {
 try {
     console.log('--- Starting Unified Build (Hostinger Mode) ---');
 
-    // 1. Build frontend with static export enabled
+    // 1. Install dependencies for all parts
+    console.log('Installing dependencies for frontend (my-app)...');
+    run('npm install', path.join(rootDir, 'my-app'));
+
+    console.log('Installing dependencies for backend...');
+    run('npm install', path.join(rootDir, 'backend'));
+
+    // 2. Build frontend with static export enabled
     console.log('Building frontend...');
     run('npm run build', path.join(rootDir, 'my-app'), {
         NEXT_STATIC_EXPORT: 'true'
