@@ -27,7 +27,21 @@ try {
 
     // 2. Build frontend with static export enabled
     console.log('Building frontend...');
-    run('npm run build', path.join(rootDir, 'my-app'), {
+    const myAppDir = path.join(rootDir, 'my-app');
+
+    // Clear Next.js build cache and output
+    const nextDir = path.join(myAppDir, '.next');
+    const outDir = path.join(myAppDir, 'out');
+    if (fs.existsSync(nextDir)) {
+        console.log('Clearing .next directory...');
+        fs.rmSync(nextDir, { recursive: true, force: true });
+    }
+    if (fs.existsSync(outDir)) {
+        console.log('Clearing out directory...');
+        fs.rmSync(outDir, { recursive: true, force: true });
+    }
+
+    run('npm run build', myAppDir, {
         NEXT_STATIC_EXPORT: 'true'
     });
 
