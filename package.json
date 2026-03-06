@@ -4,7 +4,7 @@
     "description": "Unified build for Square Puzzles",
     "scripts": {
         "install:all": "npm install && npm install --prefix backend && npm install --prefix my-app",
-        "build": "npm run build --prefix my-app && mkdir -p backend/public && cp -rf my-app/out/* backend/public/",
+        "build": "node scripts/build.mjs",
         "start": "npm start --prefix backend"
     }
 }

@@ -21,6 +21,9 @@ const nextConfig: NextConfig = {
   experimental: {
     // optimizePackageImports: ["react-icons"],
   },
+
+  // Enable static export only when building for unified deployment (e.g., Hostinger)
+  ...(process.env.NEXT_STATIC_EXPORT === 'true' ? { output: 'export', distDir: 'out' } : {}),
 };
 
 export default nextConfig;
