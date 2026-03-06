@@ -1,8 +1,6 @@
-import AdminPuzzleViewClient from './AdminPuzzleViewClient';
+export const generateStaticParams = () => [];
 
-export function generateStaticParams() {
-  return [];
-}
+import AdminPuzzleViewClient from './AdminPuzzleViewClient';
 
 export default function Page() {
   return <AdminPuzzleViewClient />;

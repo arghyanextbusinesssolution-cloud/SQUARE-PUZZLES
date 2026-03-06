@@ -1,8 +1,6 @@
-import ResetPasswordClient from './ResetPasswordClient';
+export const generateStaticParams = () => [];
 
-export function generateStaticParams() {
-    return [];
-}
+import ResetPasswordClient from './ResetPasswordClient';
 
 export default function Page() {
     return <ResetPasswordClient />;

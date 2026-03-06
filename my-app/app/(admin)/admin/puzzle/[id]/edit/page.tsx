@@ -1,8 +1,6 @@
-import AdminPuzzleEditClient from './AdminPuzzleEditClient';
+export const generateStaticParams = () => [];
 
-export function generateStaticParams() {
-  return [];
-}
+import AdminPuzzleEditClient from './AdminPuzzleEditClient';
 
 export default function Page() {
   return <AdminPuzzleEditClient />;
