@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -82,6 +83,19 @@ app.use('/api/attempt', attemptRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/settings', publicSettingsRoutes);
+
+// Serve static files from the frontend
+const publicPath = path.join(__dirname, '..', 'public');
+app.use(express.static(publicPath));
+
+// Handle React/Next.js client-side routing
+app.get('*', (req, res, next) => {
+  // If it's an API route that reached here, let it go to 404
+  if (req.path.startsWith('/api/')) {
+    return next();
+  }
+  res.sendFile(path.join(publicPath, 'index.html'));
+});
 
 // 404 handler
 app.use((req, res, next) => {
