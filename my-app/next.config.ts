@@ -21,10 +21,6 @@ const nextConfig: NextConfig = {
   experimental: {
     // optimizePackageImports: ["react-icons"],
   },
-
-  // Static export for unified deployment
-  output: 'export',
-  distDir: 'out',
 };
 
 export default nextConfig;
