@@ -25,24 +25,27 @@ try {
     console.log('Installing dependencies for backend...');
     run('npm install', path.join(rootDir, 'backend'));
 
-    // 2. Build frontend with static export enabled
-    console.log('Building frontend...');
+    console.log('Building frontend (Next.js)...');
     const myAppDir = path.join(rootDir, 'my-app');
+
+    // Log environment for debugging
+    console.log(`NEXT_STATIC_EXPORT: ${process.env.NEXT_STATIC_EXPORT || 'not set'}`);
 
     // Clear Next.js build cache and output
     const nextDir = path.join(myAppDir, '.next');
     const outDir = path.join(myAppDir, 'out');
     if (fs.existsSync(nextDir)) {
-        console.log('Clearing .next directory...');
+        console.log(`Clearing ${nextDir}...`);
         fs.rmSync(nextDir, { recursive: true, force: true });
     }
     if (fs.existsSync(outDir)) {
-        console.log('Clearing out directory...');
+        console.log(`Clearing ${outDir}...`);
         fs.rmSync(outDir, { recursive: true, force: true });
     }
 
     run('npm run build', myAppDir, {
-        NEXT_STATIC_EXPORT: 'true'
+        NEXT_STATIC_EXPORT: 'true',
+        NODE_ENV: 'production'
     });
 
     // 2. Ensure backend/public directory exists
