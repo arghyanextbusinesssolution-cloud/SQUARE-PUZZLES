@@ -63,11 +63,15 @@ export function LandingHero() {
                             </button>
                         </Link>
 
-                        <Link href="#how-to-play">
-                            <button className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg text-gray-300 border border-white/10 hover:bg-white/5 hover:text-white transition-all flex items-center justify-center gap-2">
-                                How to Play
-                            </button>
-                        </Link>
+                        <button
+                            onClick={() => {
+                                const section = document.getElementById('how-to-play');
+                                if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }}
+                            className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg text-gray-300 border border-white/10 hover:bg-white/5 hover:text-white transition-all flex items-center justify-center gap-2"
+                        >
+                            How to Play
+                        </button>
                     </div>
 
 

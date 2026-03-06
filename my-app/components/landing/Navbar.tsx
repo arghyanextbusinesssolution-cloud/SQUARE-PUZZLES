@@ -12,6 +12,13 @@ export function Navbar() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const { isAuthenticated, user } = useAuth();
 
+    const scrollToSection = (id: string) => {
+        const section = document.getElementById(id);
+        if (section) {
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+
     useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 20);
@@ -40,8 +47,8 @@ export function Navbar() {
 
                     {/* Desktop Nav */}
                     <div className="hidden md:flex items-center gap-8">
-                        <Link href="#features" className="text-sm font-bold text-gray-400 hover:text-emerald-400 transition-colors">Features</Link>
-                        <Link href="#how-to-play" className="text-sm font-bold text-gray-400 hover:text-emerald-400 transition-colors">How it Works</Link>
+                        <button onClick={() => scrollToSection('features')} className="text-sm font-bold text-gray-400 hover:text-emerald-400 transition-colors">Features</button>
+                        <button onClick={() => scrollToSection('how-to-play')} className="text-sm font-bold text-gray-400 hover:text-emerald-400 transition-colors">How it Works</button>
 
                         <div className="h-6 w-px bg-white/10 mx-2"></div>
 
@@ -83,8 +90,8 @@ export function Navbar() {
                         className="md:hidden bg-[#1a1d23] border-b border-white/5 overflow-hidden"
                     >
                         <div className="container mx-auto px-4 py-8 flex flex-col gap-6">
-                            <Link href="#features" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-gray-300">Features</Link>
-                            <Link href="#how-to-play" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-gray-300">How it Works</Link>
+                            <button onClick={() => { scrollToSection('features'); setMobileMenuOpen(false); }} className="text-lg font-bold text-gray-300 text-left">Features</button>
+                            <button onClick={() => { scrollToSection('how-to-play'); setMobileMenuOpen(false); }} className="text-lg font-bold text-gray-300 text-left">How it Works</button>
                             <div className="h-px w-full bg-white/5"></div>
                             {isAuthenticated && user ? (
                                 <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
